@@ -94,10 +94,12 @@
         }
 
         #reviewCanvas {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
             display: none;
+            object-fit: contain;
         }
 
         .overlay-info {
@@ -527,8 +529,9 @@
         const CONFIG = {
             FPS: 30,
             BUFFER_SECONDS: 90,
-            CAPTURE_WIDTH: 1280,
-            CAPTURE_HEIGHT: 720
+            // These will be set dynamically based on actual video dimensions
+            CAPTURE_WIDTH: null,
+            CAPTURE_HEIGHT: null
         };
 
         const state = {
@@ -537,7 +540,7 @@
             captureCanvas: null,
             captureCtx: null,
             frameBuffer: [],
-            maxFrames: CONFIG.FPS * CONFIG.BUFFER_SECONDS,
+            maxFrames: 2700, // Will be recalculated based on actual resolution
             isCapturing: false,
             captureInterval: null,
 
@@ -585,15 +588,9 @@
                 return;
             }
 
-            // Setup capture canvas (offscreen)
+            // Setup capture canvas (offscreen) - dimensions set when camera starts
             state.captureCanvas = document.createElement('canvas');
-            state.captureCanvas.width = CONFIG.CAPTURE_WIDTH;
-            state.captureCanvas.height = CONFIG.CAPTURE_HEIGHT;
-            state.captureCtx = state.captureCanvas.getContext('2d', { willReadFrequently: true });
-
-            // Setup review canvas
-            el.reviewCanvas.width = CONFIG.CAPTURE_WIDTH;
-            el.reviewCanvas.height = CONFIG.CAPTURE_HEIGHT;
+            state.captureCtx = null; // Will be created after we know dimensions
 
             try {
                 showStatus('Requesting camera access...');
@@ -640,8 +637,8 @@
 
             const constraints = {
                 video: {
-                    width: { ideal: CONFIG.CAPTURE_WIDTH },
-                    height: { ideal: CONFIG.CAPTURE_HEIGHT },
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
                     frameRate: { ideal: CONFIG.FPS },
                     facingMode: deviceId ? undefined : 'environment'
                 },
@@ -655,10 +652,58 @@
             state.stream = await navigator.mediaDevices.getUserMedia(constraints);
             el.liveVideo.srcObject = state.stream;
 
-            // Wait for video to be ready
+            // Wait for video to be ready and get actual dimensions
             await new Promise(resolve => {
-                el.liveVideo.onloadedmetadata = resolve;
+                el.liveVideo.onloadedmetadata = () => {
+                    el.liveVideo.play();
+                    resolve();
+                };
             });
+
+            // Get actual video dimensions (accounting for portrait/landscape)
+            const videoWidth = el.liveVideo.videoWidth;
+            const videoHeight = el.liveVideo.videoHeight;
+            
+            console.log(`Camera resolution: ${videoWidth}x${videoHeight}`);
+
+            // Scale down if needed to save memory, but maintain aspect ratio
+            const maxDimension = 1280;
+            let captureWidth, captureHeight;
+            
+            if (videoWidth > videoHeight) {
+                // Landscape
+                captureWidth = Math.min(videoWidth, maxDimension);
+                captureHeight = Math.round(captureWidth * (videoHeight / videoWidth));
+            } else {
+                // Portrait
+                captureHeight = Math.min(videoHeight, maxDimension);
+                captureWidth = Math.round(captureHeight * (videoWidth / videoHeight));
+            }
+
+            CONFIG.CAPTURE_WIDTH = captureWidth;
+            CONFIG.CAPTURE_HEIGHT = captureHeight;
+
+            console.log(`Capture resolution: ${captureWidth}x${captureHeight}`);
+
+            // Setup capture canvas with correct dimensions
+            state.captureCanvas.width = captureWidth;
+            state.captureCanvas.height = captureHeight;
+            state.captureCtx = state.captureCanvas.getContext('2d', { willReadFrequently: true });
+
+            // Setup review canvas with correct dimensions
+            el.reviewCanvas.width = captureWidth;
+            el.reviewCanvas.height = captureHeight;
+
+            // Update max frames based on new dimensions (adjust for memory)
+            const bytesPerFrame = captureWidth * captureHeight * 4; // RGBA
+            const targetMemoryMB = 300;
+            const maxFramesByMemory = Math.floor((targetMemoryMB * 1024 * 1024) / bytesPerFrame);
+            state.maxFrames = Math.min(CONFIG.FPS * CONFIG.BUFFER_SECONDS, maxFramesByMemory);
+            
+            console.log(`Max frames: ${state.maxFrames} (~${(state.maxFrames / CONFIG.FPS).toFixed(0)}s buffer)`);
+
+            // Clear old buffer when switching cameras
+            state.frameBuffer = [];
 
             startCapturing();
         }
