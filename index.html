@@ -93,13 +93,6 @@
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .fullscreen-btn:active {
-            background: rgba(255,255,255,0.2);
         }
 
         /* ========== VIDEO CONTAINER ========== */
@@ -127,8 +120,80 @@
             height: auto;
             display: none;
             object-fit: contain;
+            background: #000;
         }
 
+        /* ========== CROP OVERLAY ========== */
+        .crop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        .crop-overlay.visible {
+            display: block;
+        }
+
+        .crop-region {
+            position: absolute;
+            border: 3px solid #00ff88;
+            background: transparent;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+            pointer-events: auto;
+            cursor: move;
+            touch-action: none;
+        }
+
+        .crop-handle {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #00ff88;
+            border-radius: 50%;
+            pointer-events: auto;
+            touch-action: none;
+        }
+
+        .crop-handle.top-left { top: -15px; left: -15px; cursor: nwse-resize; }
+        .crop-handle.top-right { top: -15px; right: -15px; cursor: nesw-resize; }
+        .crop-handle.bottom-left { bottom: -15px; left: -15px; cursor: nesw-resize; }
+        .crop-handle.bottom-right { bottom: -15px; right: -15px; cursor: nwse-resize; }
+
+        .crop-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff88;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .crop-instructions {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            max-width: 90%;
+            pointer-events: none;
+        }
+
+        /* ========== INFO BADGES ========== */
         .overlay-info {
             position: absolute;
             top: 8px;
@@ -149,6 +214,7 @@
 
         .info-badge.recording { color: #00ff88; }
         .info-badge.review { color: #ffa502; }
+        .info-badge.crop-mode { color: #00ff88; background: rgba(0, 255, 136, 0.2); }
 
         .time-badge {
             position: absolute;
@@ -180,7 +246,7 @@
             font-weight: 600;
         }
 
-        /* ========== VIDEO SCRUBBER (Review Mode) ========== */
+        /* ========== VIDEO SCRUBBER ========== */
         .video-scrubber {
             position: absolute;
             bottom: 50px;
@@ -218,22 +284,11 @@
 
         .scrubber-input::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
             width: 24px;
             height: 24px;
             background: #fff;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
-
-        .scrubber-input::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
@@ -266,32 +321,19 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .status-text {
-            font-size: 14px;
-            color: #ccc;
-        }
+        .status-text { font-size: 14px; color: #ccc; }
 
         .error-box {
             background: rgba(255, 71, 87, 0.15);
             border: 1px solid #ff4757;
             border-radius: 12px;
             padding: 16px;
-            margin: 16px;
             max-width: 300px;
             text-align: center;
         }
 
-        .error-box h3 {
-            color: #ff4757;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-
-        .error-box p {
-            font-size: 13px;
-            color: #aaa;
-            line-height: 1.4;
-        }
+        .error-box h3 { color: #ff4757; margin-bottom: 8px; }
+        .error-box p { font-size: 13px; color: #aaa; }
 
         /* ========== CONTROLS ========== */
         .controls {
@@ -312,6 +354,7 @@
 
         .mode-label.live { color: #00ff88; }
         .mode-label.review { color: #ffa502; }
+        .mode-label.crop { color: #00ff88; }
 
         .camera-row {
             display: flex;
@@ -333,6 +376,21 @@
             background-position: right 10px center;
         }
 
+        .crop-toggle-btn {
+            padding: 10px 14px;
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            background: transparent;
+            color: #00ff88;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .crop-toggle-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+
         .primary-btn {
             width: 100%;
             padding: 14px;
@@ -345,12 +403,9 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: transform 0.1s;
         }
 
-        .primary-btn:active {
-            transform: scale(0.97);
-        }
+        .primary-btn:active { transform: scale(0.97); }
 
         .review-btn {
             background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%);
@@ -362,9 +417,16 @@
             color: #000;
         }
 
+        .confirm-crop-btn {
+            background: linear-gradient(135deg, #00ff88 0%, #00b894 100%);
+            color: #000;
+        }
+
         .live-controls { display: block; }
         .review-controls { display: none; }
+        .crop-controls { display: none; }
         .review-controls.active { display: block; }
+        .crop-controls.active { display: block; }
         .live-controls.hidden { display: none; }
 
         .control-grid {
@@ -418,8 +480,6 @@
             color: #ffa502;
         }
 
-        .speed-btn:active { transform: scale(0.95); }
-
         .frame-row {
             display: flex;
             gap: 6px;
@@ -434,15 +494,10 @@
             background: #1a1a2e;
             color: #aaa;
             font-size: 12px;
-            font-weight: 500;
             cursor: pointer;
         }
 
-        .frame-btn:active { background: #252540; }
-
-        .progress-wrap {
-            margin-bottom: 10px;
-        }
+        .progress-wrap { margin-bottom: 10px; }
 
         .progress-bar {
             width: 100%;
@@ -457,7 +512,6 @@
             height: 100%;
             background: linear-gradient(90deg, #ffa502, #ff6348);
             width: 0%;
-            border-radius: 3px;
         }
 
         .progress-time {
@@ -469,116 +523,7 @@
             font-family: 'SF Mono', Monaco, monospace;
         }
 
-        /* ========== LANDSCAPE OPTIMIZATIONS ========== */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .header {
-                padding: 4px 10px;
-            }
-
-            .header h1 {
-                font-size: 14px;
-            }
-
-            .controls {
-                padding: 6px 10px;
-                padding-bottom: max(6px, env(safe-area-inset-bottom));
-            }
-
-            .mode-label {
-                display: none;
-            }
-
-            .camera-row {
-                margin-bottom: 6px;
-            }
-
-            .camera-select {
-                padding: 6px 8px;
-                font-size: 12px;
-            }
-
-            .primary-btn {
-                padding: 10px;
-                font-size: 14px;
-            }
-
-            .control-grid {
-                margin-bottom: 6px;
-                gap: 6px;
-            }
-
-            .ctrl-btn {
-                padding: 6px 4px;
-                font-size: 11px;
-            }
-
-            .ctrl-btn .icon {
-                font-size: 16px;
-            }
-
-            .speed-row {
-                margin-bottom: 6px;
-            }
-
-            .speed-btn {
-                padding: 6px 2px;
-                font-size: 11px;
-            }
-
-            .frame-row {
-                margin-bottom: 6px;
-            }
-
-            .frame-btn {
-                padding: 6px;
-                font-size: 11px;
-            }
-
-            .progress-wrap {
-                margin-bottom: 6px;
-            }
-
-            .video-scrubber {
-                bottom: 40px;
-            }
-
-            .scrubber-track {
-                height: 32px;
-                padding: 0 12px;
-            }
-
-            .scrubber-input::-webkit-slider-thumb {
-                width: 20px;
-                height: 20px;
-            }
-        }
-
-        /* Even more compact for very short screens */
-        @media (orientation: landscape) and (max-height: 380px) {
-            .header {
-                display: none;
-            }
-
-            .frame-row {
-                display: none;
-            }
-
-            .progress-wrap {
-                display: none;
-            }
-        }
-
-        /* ========== FULLSCREEN MODE ========== */
-        .app-container.fullscreen-mode .header,
-        .app-container.fullscreen-mode .controls {
-            display: none !important;
-        }
-
-        .app-container.fullscreen-mode .video-container {
-            height: 100vh;
-            height: 100dvh;
-        }
-
+        /* ========== EXIT FULLSCREEN ========== */
         .exit-fullscreen-btn {
             position: absolute;
             top: 12px;
@@ -595,12 +540,15 @@
         }
 
         .app-container.fullscreen-mode .exit-fullscreen-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            display: block;
         }
 
-        /* Fullscreen review controls overlay */
+        .app-container.fullscreen-mode .header,
+        .app-container.fullscreen-mode .controls {
+            display: none !important;
+        }
+
+        /* Fullscreen review controls */
         .fullscreen-review-controls {
             position: absolute;
             bottom: 0;
@@ -631,22 +579,10 @@
             border-radius: 10px;
             font-size: 16px;
             cursor: pointer;
-            backdrop-filter: blur(4px);
         }
 
-        .fs-btn:active {
-            background: rgba(255,255,255,0.25);
-        }
-
-        .fs-btn.play-btn {
-            background: #00b894;
-            padding: 12px 30px;
-        }
-
-        .fs-btn.play-btn.paused {
-            background: #fdcb6e;
-            color: #000;
-        }
+        .fs-btn.play-btn { background: #00b894; padding: 12px 30px; }
+        .fs-btn.play-btn.paused { background: #fdcb6e; color: #000; }
 
         .fs-speed-row {
             display: flex;
@@ -668,7 +604,26 @@
         .fs-speed-btn.active {
             border-color: #ffa502;
             color: #ffa502;
-            background: rgba(255, 165, 2, 0.15);
+        }
+
+        /* ========== LANDSCAPE ========== */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .header { padding: 4px 10px; }
+            .header h1 { font-size: 14px; }
+            .controls { padding: 6px 10px; }
+            .mode-label { display: none; }
+            .camera-row { margin-bottom: 6px; }
+            .camera-select { padding: 6px 8px; font-size: 12px; }
+            .primary-btn { padding: 10px; font-size: 14px; }
+            .ctrl-btn { padding: 6px 4px; font-size: 11px; }
+            .ctrl-btn .icon { font-size: 16px; }
+            .speed-btn { padding: 6px 2px; font-size: 11px; }
+            .frame-row { display: none; }
+            .progress-wrap { display: none; }
+        }
+
+        @media (orientation: landscape) and (max-height: 380px) {
+            .header { display: none; }
         }
     </style>
 </head>
@@ -682,9 +637,24 @@
             </div>
         </header>
 
-        <div class="video-container">
+        <div class="video-container" id="videoContainer">
             <video id="liveVideo" autoplay playsinline muted></video>
             <canvas id="reviewCanvas"></canvas>
+
+            <!-- Crop overlay -->
+            <div class="crop-overlay" id="cropOverlay">
+                <div class="crop-region" id="cropRegion">
+                    <div class="crop-handle top-left" data-handle="tl"></div>
+                    <div class="crop-handle top-right" data-handle="tr"></div>
+                    <div class="crop-handle bottom-left" data-handle="bl"></div>
+                    <div class="crop-handle bottom-right" data-handle="br"></div>
+                    <div class="crop-label" id="cropLabel">Drag to position</div>
+                </div>
+                <div class="crop-instructions">
+                    Position the green box over the line you want to monitor.<br>
+                    Drag corners to resize, drag center to move.
+                </div>
+            </div>
 
             <div class="overlay-info">
                 <div class="info-badge recording" id="modeBadge">● LIVE</div>
@@ -696,17 +666,14 @@
 
             <div class="time-badge" id="timeBadge">00:00.0</div>
 
-            <!-- Video scrubber slider -->
             <div class="video-scrubber" id="videoScrubber">
                 <div class="scrubber-track">
                     <input type="range" class="scrubber-input" id="scrubberInput" min="0" max="100" value="0">
                 </div>
             </div>
 
-            <!-- Exit fullscreen button -->
             <button class="exit-fullscreen-btn" id="exitFullscreenBtn">✕ Exit</button>
 
-            <!-- Fullscreen review controls -->
             <div class="fullscreen-review-controls" id="fsReviewControls">
                 <div class="fs-control-row">
                     <button class="fs-btn" id="fsRewindBtn">⏪ -15s</button>
@@ -734,11 +701,18 @@
                 <select class="camera-select" id="cameraSelect">
                     <option value="">Loading cameras...</option>
                 </select>
+                <button class="crop-toggle-btn" id="cropToggleBtn">✂ Crop</button>
             </div>
 
             <div class="live-controls" id="liveControls">
                 <button class="primary-btn review-btn" id="reviewBtn">
                     ⏪ Review Last Ball
+                </button>
+            </div>
+
+            <div class="crop-controls" id="cropControls">
+                <button class="primary-btn confirm-crop-btn" id="confirmCropBtn">
+                    ✓ Apply Crop Region
                 </button>
             </div>
 
@@ -793,14 +767,14 @@
         // ============================================
 
         const CONFIG = {
-            FPS: 15,  // Reduced from 30 for better mobile performance
-            BUFFER_SECONDS: 90,
+            FPS: 15,
+            BUFFER_SECONDS: 120,
             CAPTURE_WIDTH: null,
             CAPTURE_HEIGHT: null
         };
 
         const state = {
-            mode: 'live',
+            mode: 'live', // 'live', 'crop', 'review'
             stream: null,
             captureCanvas: null,
             captureCtx: null,
@@ -811,6 +785,14 @@
             lastCaptureTime: 0,
             isFullscreen: false,
 
+            // Crop state (relative to video, 0-1)
+            cropEnabled: false,
+            cropRect: { x: 0.1, y: 0.3, width: 0.8, height: 0.4 },
+            
+            // Video dimensions
+            videoWidth: 0,
+            videoHeight: 0,
+
             // Review state
             reviewIndex: 0,
             isPlaying: false,
@@ -820,6 +802,7 @@
 
         const el = {
             appContainer: document.getElementById('appContainer'),
+            videoContainer: document.getElementById('videoContainer'),
             liveVideo: document.getElementById('liveVideo'),
             reviewCanvas: document.getElementById('reviewCanvas'),
             recordingIndicator: document.getElementById('recordingIndicator'),
@@ -833,6 +816,7 @@
             cameraSelect: document.getElementById('cameraSelect'),
             liveControls: document.getElementById('liveControls'),
             reviewControls: document.getElementById('reviewControls'),
+            cropControls: document.getElementById('cropControls'),
             reviewBtn: document.getElementById('reviewBtn'),
             backBtn: document.getElementById('backBtn'),
             rewindBtn: document.getElementById('rewindBtn'),
@@ -851,7 +835,12 @@
             fsReviewControls: document.getElementById('fsReviewControls'),
             fsRewindBtn: document.getElementById('fsRewindBtn'),
             fsPlayBtn: document.getElementById('fsPlayBtn'),
-            fsForwardBtn: document.getElementById('fsForwardBtn')
+            fsForwardBtn: document.getElementById('fsForwardBtn'),
+            cropOverlay: document.getElementById('cropOverlay'),
+            cropRegion: document.getElementById('cropRegion'),
+            cropLabel: document.getElementById('cropLabel'),
+            cropToggleBtn: document.getElementById('cropToggleBtn'),
+            confirmCropBtn: document.getElementById('confirmCropBtn')
         };
 
         // ============================================
@@ -860,7 +849,7 @@
 
         async function init() {
             if (!window.isSecureContext) {
-                showError('Requires HTTPS', 'Camera access needs a secure connection. Please access via HTTPS.');
+                showError('Requires HTTPS', 'Camera access needs a secure connection.');
                 return;
             }
 
@@ -873,27 +862,22 @@
                 await startCamera();
                 hideStatus();
                 setupListeners();
+                setupCropHandlers();
             } catch (err) {
                 console.error('Init error:', err);
-                showError('Camera Error', 'Could not access camera. Please allow camera permission and reload.');
+                showError('Camera Error', 'Could not access camera. Please allow permission and reload.');
             }
         }
 
         async function getCameras() {
             try {
-                // Try to enumerate without permission first
                 let devices = await navigator.mediaDevices.enumerateDevices();
                 let cameras = devices.filter(d => d.kind === 'videoinput');
                 
-                // If we don't have labels, we need permission
                 if (cameras.length === 0 || !cameras[0].label) {
-                    // This will be our main stream - don't stop it
                     const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    // Store it so startCamera can reuse or properly replace it
                     state.stream = tempStream;
                     el.liveVideo.srcObject = tempStream;
-                    
-                    // Re-enumerate to get labels
                     devices = await navigator.mediaDevices.enumerateDevices();
                     cameras = devices.filter(d => d.kind === 'videoinput');
                 }
@@ -909,9 +893,7 @@
                     el.cameraSelect.appendChild(opt);
                 });
 
-                if (cameras.length === 0) {
-                    throw new Error('No cameras found');
-                }
+                if (cameras.length === 0) throw new Error('No cameras found');
             } catch (err) {
                 console.error('getCameras error:', err);
                 throw err;
@@ -947,39 +929,52 @@
                 };
             });
 
-            // Keep video playing - handle interruptions
             el.liveVideo.onpause = () => {
                 if (state.mode === 'live' && state.stream) {
-                    console.log('Video paused, restarting...');
                     el.liveVideo.play().catch(() => {});
                 }
             };
 
-            el.liveVideo.onerror = (e) => {
-                console.error('Video error:', e);
-            };
-
-            const videoWidth = el.liveVideo.videoWidth;
-            const videoHeight = el.liveVideo.videoHeight;
+            state.videoWidth = el.liveVideo.videoWidth;
+            state.videoHeight = el.liveVideo.videoHeight;
             
-            console.log(`Camera resolution: ${videoWidth}x${videoHeight}`);
+            console.log(`Camera resolution: ${state.videoWidth}x${state.videoHeight}`);
 
-            // Use lower resolution for capture to reduce memory pressure
-            // 720p max instead of 1280p
-            const maxDimension = 720;
+            setupCaptureCanvas();
+            state.frameBuffer = [];
+            startCapturing();
+        }
+
+        function setupCaptureCanvas() {
             let captureWidth, captureHeight;
-            
-            if (videoWidth > videoHeight) {
-                // Landscape
-                captureWidth = Math.min(videoWidth, maxDimension);
-                captureHeight = Math.round(captureWidth * (videoHeight / videoWidth));
+
+            if (state.cropEnabled) {
+                // Calculate crop dimensions in pixels
+                const cropPixelWidth = Math.round(state.videoWidth * state.cropRect.width);
+                const cropPixelHeight = Math.round(state.videoHeight * state.cropRect.height);
+                
+                // Scale down if needed, max 480px on longest side
+                const maxDim = 480;
+                if (cropPixelWidth > cropPixelHeight) {
+                    captureWidth = Math.min(cropPixelWidth, maxDim);
+                    captureHeight = Math.round(captureWidth * (cropPixelHeight / cropPixelWidth));
+                } else {
+                    captureHeight = Math.min(cropPixelHeight, maxDim);
+                    captureWidth = Math.round(captureHeight * (cropPixelWidth / cropPixelHeight));
+                }
             } else {
-                // Portrait
-                captureHeight = Math.min(videoHeight, maxDimension);
-                captureWidth = Math.round(captureHeight * (videoWidth / videoHeight));
+                // Full frame, scale to 480p
+                const maxDim = 480;
+                if (state.videoWidth > state.videoHeight) {
+                    captureWidth = Math.min(state.videoWidth, maxDim);
+                    captureHeight = Math.round(captureWidth * (state.videoHeight / state.videoWidth));
+                } else {
+                    captureHeight = Math.min(state.videoHeight, maxDim);
+                    captureWidth = Math.round(captureHeight * (state.videoWidth / state.videoHeight));
+                }
             }
 
-            // Ensure even dimensions (some codecs require this)
+            // Ensure even dimensions
             captureWidth = Math.floor(captureWidth / 2) * 2;
             captureHeight = Math.floor(captureHeight / 2) * 2;
 
@@ -993,13 +988,229 @@
             el.reviewCanvas.width = captureWidth;
             el.reviewCanvas.height = captureHeight;
 
+            // Calculate max frames
             const bytesPerFrame = captureWidth * captureHeight * 4;
-            const targetMemoryMB = 300;
+            const targetMemoryMB = 500;
             const maxFramesByMemory = Math.floor((targetMemoryMB * 1024 * 1024) / bytesPerFrame);
             state.maxFrames = Math.min(CONFIG.FPS * CONFIG.BUFFER_SECONDS, maxFramesByMemory);
 
-            state.frameBuffer = [];
+            const bufferSecs = (state.maxFrames / CONFIG.FPS).toFixed(0);
+            console.log(`Capture: ${captureWidth}x${captureHeight}, Buffer: ~${bufferSecs}s`);
+            el.cropLabel.textContent = `~${bufferSecs}s buffer`;
+        }
+
+        // ============================================
+        // CROP HANDLING
+        // ============================================
+
+        function enterCropMode() {
+            state.mode = 'crop';
+            stopCapturing();
+            
+            el.cropOverlay.classList.add('visible');
+            el.liveControls.classList.add('hidden');
+            el.cropControls.classList.add('active');
+            el.cropToggleBtn.classList.add('active');
+            
+            el.modeBadge.textContent = '✂ CROP';
+            el.modeBadge.classList.remove('recording', 'review');
+            el.modeBadge.classList.add('crop-mode');
+            
+            el.modeLabel.textContent = '✂ SET CROP REGION';
+            el.modeLabel.classList.remove('live', 'review');
+            el.modeLabel.classList.add('crop');
+
+            updateCropRegionDisplay();
+        }
+
+        function exitCropMode(apply = false) {
+            if (apply) {
+                state.cropEnabled = true;
+                state.frameBuffer = []; // Clear buffer when crop changes
+                setupCaptureCanvas();
+            }
+
+            state.mode = 'live';
+            
+            el.cropOverlay.classList.remove('visible');
+            el.cropControls.classList.remove('active');
+            el.liveControls.classList.remove('hidden');
+            el.cropToggleBtn.classList.toggle('active', state.cropEnabled);
+            
+            el.modeBadge.textContent = '● LIVE';
+            el.modeBadge.classList.add('recording');
+            el.modeBadge.classList.remove('crop-mode', 'review');
+            
+            el.modeLabel.textContent = '● RECORDING';
+            el.modeLabel.classList.add('live');
+            el.modeLabel.classList.remove('crop', 'review');
+
             startCapturing();
+        }
+
+        function updateCropRegionDisplay() {
+            const container = el.videoContainer;
+            const video = el.liveVideo;
+            
+            // Get video display dimensions
+            const containerRect = container.getBoundingClientRect();
+            const videoAspect = state.videoWidth / state.videoHeight;
+            const containerAspect = containerRect.width / containerRect.height;
+            
+            let displayWidth, displayHeight, offsetX, offsetY;
+            
+            if (videoAspect > containerAspect) {
+                // Video is wider - letterbox top/bottom
+                displayWidth = containerRect.width;
+                displayHeight = containerRect.width / videoAspect;
+                offsetX = 0;
+                offsetY = (containerRect.height - displayHeight) / 2;
+            } else {
+                // Video is taller - letterbox left/right
+                displayHeight = containerRect.height;
+                displayWidth = containerRect.height * videoAspect;
+                offsetX = (containerRect.width - displayWidth) / 2;
+                offsetY = 0;
+            }
+
+            // Convert crop rect to screen coordinates
+            const screenX = offsetX + state.cropRect.x * displayWidth;
+            const screenY = offsetY + state.cropRect.y * displayHeight;
+            const screenW = state.cropRect.width * displayWidth;
+            const screenH = state.cropRect.height * displayHeight;
+
+            el.cropRegion.style.left = `${screenX}px`;
+            el.cropRegion.style.top = `${screenY}px`;
+            el.cropRegion.style.width = `${screenW}px`;
+            el.cropRegion.style.height = `${screenH}px`;
+
+            // Update buffer estimate
+            setupCaptureCanvas();
+        }
+
+        function setupCropHandlers() {
+            let isDragging = false;
+            let dragType = null; // 'move' or 'tl', 'tr', 'bl', 'br'
+            let startX, startY;
+            let startRect;
+
+            function getEventPos(e) {
+                const touch = e.touches ? e.touches[0] : e;
+                return { x: touch.clientX, y: touch.clientY };
+            }
+
+            function getVideoCoords(screenX, screenY) {
+                const container = el.videoContainer;
+                const containerRect = container.getBoundingClientRect();
+                const videoAspect = state.videoWidth / state.videoHeight;
+                const containerAspect = containerRect.width / containerRect.height;
+                
+                let displayWidth, displayHeight, offsetX, offsetY;
+                
+                if (videoAspect > containerAspect) {
+                    displayWidth = containerRect.width;
+                    displayHeight = containerRect.width / videoAspect;
+                    offsetX = 0;
+                    offsetY = (containerRect.height - displayHeight) / 2;
+                } else {
+                    displayHeight = containerRect.height;
+                    displayWidth = containerRect.height * videoAspect;
+                    offsetX = (containerRect.width - displayWidth) / 2;
+                    offsetY = 0;
+                }
+
+                return {
+                    x: (screenX - containerRect.left - offsetX) / displayWidth,
+                    y: (screenY - containerRect.top - offsetY) / displayHeight,
+                    displayWidth,
+                    displayHeight
+                };
+            }
+
+            function onStart(e) {
+                if (state.mode !== 'crop') return;
+                e.preventDefault();
+                
+                const target = e.target;
+                const pos = getEventPos(e);
+                startX = pos.x;
+                startY = pos.y;
+                startRect = { ...state.cropRect };
+
+                if (target.classList.contains('crop-handle')) {
+                    dragType = target.dataset.handle;
+                } else if (target === el.cropRegion || target.classList.contains('crop-label')) {
+                    dragType = 'move';
+                } else {
+                    return;
+                }
+
+                isDragging = true;
+            }
+
+            function onMove(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+
+                const pos = getEventPos(e);
+                const coords = getVideoCoords(pos.x, pos.y);
+                const startCoords = getVideoCoords(startX, startY);
+                
+                const dx = coords.x - startCoords.x;
+                const dy = coords.y - startCoords.y;
+
+                if (dragType === 'move') {
+                    state.cropRect.x = Math.max(0, Math.min(1 - startRect.width, startRect.x + dx));
+                    state.cropRect.y = Math.max(0, Math.min(1 - startRect.height, startRect.y + dy));
+                } else {
+                    // Handle resize
+                    let newX = startRect.x;
+                    let newY = startRect.y;
+                    let newW = startRect.width;
+                    let newH = startRect.height;
+
+                    if (dragType.includes('l')) {
+                        newX = Math.max(0, Math.min(startRect.x + startRect.width - 0.1, startRect.x + dx));
+                        newW = startRect.width - (newX - startRect.x);
+                    }
+                    if (dragType.includes('r')) {
+                        newW = Math.max(0.1, Math.min(1 - startRect.x, startRect.width + dx));
+                    }
+                    if (dragType.includes('t')) {
+                        newY = Math.max(0, Math.min(startRect.y + startRect.height - 0.1, startRect.y + dy));
+                        newH = startRect.height - (newY - startRect.y);
+                    }
+                    if (dragType.includes('b')) {
+                        newH = Math.max(0.1, Math.min(1 - startRect.y, startRect.height + dy));
+                    }
+
+                    state.cropRect = { x: newX, y: newY, width: newW, height: newH };
+                }
+
+                updateCropRegionDisplay();
+            }
+
+            function onEnd() {
+                isDragging = false;
+                dragType = null;
+            }
+
+            // Mouse events
+            el.cropRegion.addEventListener('mousedown', onStart);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+
+            // Touch events
+            el.cropRegion.addEventListener('touchstart', onStart, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                if (state.mode === 'crop') {
+                    updateCropRegionDisplay();
+                }
+            });
         }
 
         // ============================================
@@ -1010,13 +1221,11 @@
             if (state.isCapturing) return;
 
             state.isCapturing = true;
-            state.frameBuffer = [];
             state.lastCaptureTime = 0;
 
             el.recordingIndicator.classList.add('active');
             el.recordingIndicator.textContent = 'Recording';
 
-            // Use requestAnimationFrame for smoother capture
             function captureLoop(timestamp) {
                 if (!state.isCapturing) return;
 
@@ -1045,21 +1254,34 @@
 
         function captureFrame() {
             try {
-                // Check if video is still playing
-                if (!state.stream || !el.liveVideo.videoWidth || el.liveVideo.paused || el.liveVideo.ended) {
-                    // Try to restart video if it stopped
+                if (!state.stream || !el.liveVideo.videoWidth || el.liveVideo.paused) {
                     if (el.liveVideo.paused && state.stream) {
                         el.liveVideo.play().catch(() => {});
                     }
                     return;
                 }
 
-                state.captureCtx.drawImage(
-                    el.liveVideo,
-                    0, 0,
-                    CONFIG.CAPTURE_WIDTH,
-                    CONFIG.CAPTURE_HEIGHT
-                );
+                if (state.cropEnabled) {
+                    // Capture cropped region
+                    const srcX = Math.round(state.cropRect.x * state.videoWidth);
+                    const srcY = Math.round(state.cropRect.y * state.videoHeight);
+                    const srcW = Math.round(state.cropRect.width * state.videoWidth);
+                    const srcH = Math.round(state.cropRect.height * state.videoHeight);
+
+                    state.captureCtx.drawImage(
+                        el.liveVideo,
+                        srcX, srcY, srcW, srcH,
+                        0, 0, CONFIG.CAPTURE_WIDTH, CONFIG.CAPTURE_HEIGHT
+                    );
+                } else {
+                    // Capture full frame
+                    state.captureCtx.drawImage(
+                        el.liveVideo,
+                        0, 0,
+                        CONFIG.CAPTURE_WIDTH,
+                        CONFIG.CAPTURE_HEIGHT
+                    );
+                }
 
                 const imageData = state.captureCtx.getImageData(
                     0, 0,
@@ -1080,8 +1302,7 @@
         }
 
         function updateBufferDisplay() {
-            const frames = state.frameBuffer.length;
-            const seconds = (frames / CONFIG.FPS).toFixed(1);
+            const seconds = (state.frameBuffer.length / CONFIG.FPS).toFixed(1);
             el.bufferCount.textContent = seconds;
         }
 
@@ -1112,17 +1333,14 @@
             el.appContainer.classList.add('review-active');
 
             el.modeBadge.textContent = '⏸ REVIEW';
-            el.modeBadge.classList.remove('recording');
+            el.modeBadge.classList.remove('recording', 'crop-mode');
             el.modeBadge.classList.add('review');
 
             el.modeLabel.textContent = '⏸ REVIEW MODE';
-            el.modeLabel.classList.remove('live');
+            el.modeLabel.classList.remove('live', 'crop');
             el.modeLabel.classList.add('review');
 
-            const totalSec = state.frameBuffer.length / CONFIG.FPS;
-            el.totalTime.textContent = formatTime(totalSec);
-
-            // Setup scrubber
+            el.totalTime.textContent = formatTime(state.frameBuffer.length / CONFIG.FPS);
             el.scrubberInput.max = state.frameBuffer.length - 1;
             el.scrubberInput.value = state.reviewIndex;
 
@@ -1146,20 +1364,17 @@
 
             el.modeBadge.textContent = '● LIVE';
             el.modeBadge.classList.add('recording');
-            el.modeBadge.classList.remove('review');
+            el.modeBadge.classList.remove('review', 'crop-mode');
 
             el.modeLabel.textContent = '● RECORDING';
             el.modeLabel.classList.add('live');
-            el.modeLabel.classList.remove('review');
+            el.modeLabel.classList.remove('review', 'crop');
 
             startCapturing();
         }
 
         function renderCurrentFrame() {
-            if (state.reviewIndex < 0) state.reviewIndex = 0;
-            if (state.reviewIndex >= state.frameBuffer.length) {
-                state.reviewIndex = state.frameBuffer.length - 1;
-            }
+            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
 
             const frame = state.frameBuffer[state.reviewIndex];
             if (!frame) return;
@@ -1199,7 +1414,6 @@
 
             state.playbackInterval = setInterval(() => {
                 state.reviewIndex++;
-
                 if (state.reviewIndex >= state.frameBuffer.length) {
                     stopPlayback();
                     state.reviewIndex = state.frameBuffer.length - 1;
@@ -1220,8 +1434,7 @@
 
         function seek(seconds) {
             stopPlayback();
-            const frameDelta = Math.round(seconds * CONFIG.FPS);
-            state.reviewIndex += frameDelta;
+            state.reviewIndex += Math.round(seconds * CONFIG.FPS);
             state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
             renderCurrentFrame();
         }
@@ -1238,18 +1451,15 @@
             stopPlayback();
             state.playbackSpeed = speed;
             updateSpeedButtons();
-            if (wasPlaying) {
-                startPlayback();
-            }
+            if (wasPlaying) startPlayback();
         }
 
         function seekToPosition(e) {
             const rect = el.progressBar.getBoundingClientRect();
             const percent = (e.clientX - rect.left) / rect.width;
-            const targetIndex = Math.floor(percent * state.frameBuffer.length);
-            
             stopPlayback();
-            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, targetIndex));
+            state.reviewIndex = Math.floor(percent * state.frameBuffer.length);
+            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
             renderCurrentFrame();
         }
 
@@ -1274,9 +1484,7 @@
         function enterFullscreen() {
             state.isFullscreen = true;
             el.appContainer.classList.add('fullscreen-mode');
-            el.fullscreenBtn.textContent = '⛶';
 
-            // Try native fullscreen
             const elem = el.appContainer;
             if (elem.requestFullscreen) {
                 elem.requestFullscreen().catch(() => {});
@@ -1288,7 +1496,6 @@
         function exitFullscreen() {
             state.isFullscreen = false;
             el.appContainer.classList.remove('fullscreen-mode');
-            el.fullscreenBtn.textContent = '⛶';
 
             if (document.exitFullscreen) {
                 document.exitFullscreen().catch(() => {});
@@ -1316,20 +1523,19 @@
         }
 
         function updateProgressBar() {
-            const percent = (state.reviewIndex / (state.frameBuffer.length - 1)) * 100;
+            const percent = (state.reviewIndex / Math.max(1, state.frameBuffer.length - 1)) * 100;
             el.progressFill.style.width = `${percent}%`;
         }
 
         function updateScrubber() {
             el.scrubberInput.value = state.reviewIndex;
-            const percent = (state.reviewIndex / (state.frameBuffer.length - 1)) * 100;
+            const percent = (state.reviewIndex / Math.max(1, state.frameBuffer.length - 1)) * 100;
             el.scrubberInput.style.setProperty('--progress', `${percent}%`);
         }
 
         function updateSpeedButtons() {
             document.querySelectorAll('.speed-btn, .fs-speed-btn').forEach(btn => {
-                const speed = parseFloat(btn.dataset.speed);
-                btn.classList.toggle('active', speed === state.playbackSpeed);
+                btn.classList.toggle('active', parseFloat(btn.dataset.speed) === state.playbackSpeed);
             });
         }
 
@@ -1350,12 +1556,7 @@
         }
 
         function showError(title, message) {
-            el.statusOverlay.innerHTML = `
-                <div class="error-box">
-                    <h3>${title}</h3>
-                    <p>${message}</p>
-                </div>
-            `;
+            el.statusOverlay.innerHTML = `<div class="error-box"><h3>${title}</h3><p>${message}</p></div>`;
             el.statusOverlay.classList.remove('hidden');
         }
 
@@ -1376,6 +1577,19 @@
                 }
             });
 
+            // Crop toggle
+            el.cropToggleBtn.addEventListener('click', () => {
+                if (state.mode === 'crop') {
+                    exitCropMode(false);
+                } else if (state.mode === 'live') {
+                    enterCropMode();
+                }
+            });
+
+            el.confirmCropBtn.addEventListener('click', () => {
+                exitCropMode(true);
+            });
+
             el.reviewBtn.addEventListener('click', enterReviewMode);
             el.backBtn.addEventListener('click', exitReviewMode);
 
@@ -1387,19 +1601,15 @@
             el.frameNext.addEventListener('click', () => stepFrame(1));
 
             document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    setSpeed(parseFloat(btn.dataset.speed));
-                });
+                btn.addEventListener('click', () => setSpeed(parseFloat(btn.dataset.speed)));
             });
 
             el.progressBar.addEventListener('click', seekToPosition);
+            el.scrubberInput.addEventListener('input', seekToScrubberPosition);
 
             // Fullscreen
             el.fullscreenBtn.addEventListener('click', toggleFullscreen);
             el.exitFullscreenBtn.addEventListener('click', exitFullscreen);
-
-            // Scrubber
-            el.scrubberInput.addEventListener('input', seekToScrubberPosition);
 
             // Fullscreen review controls
             el.fsPlayBtn.addEventListener('click', togglePlay);
@@ -1407,58 +1617,35 @@
             el.fsForwardBtn.addEventListener('click', () => seek(15));
 
             document.querySelectorAll('.fs-speed-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    setSpeed(parseFloat(btn.dataset.speed));
-                });
+                btn.addEventListener('click', () => setSpeed(parseFloat(btn.dataset.speed)));
             });
 
-            // Handle native fullscreen exit
             document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement && state.isFullscreen) {
-                    exitFullscreen();
-                }
+                if (!document.fullscreenElement && state.isFullscreen) exitFullscreen();
             });
 
             document.addEventListener('webkitfullscreenchange', () => {
-                if (!document.webkitFullscreenElement && state.isFullscreen) {
-                    exitFullscreen();
-                }
+                if (!document.webkitFullscreenElement && state.isFullscreen) exitFullscreen();
             });
 
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
+                if (state.mode === 'crop') return;
                 if (state.mode !== 'review') return;
 
                 switch (e.key) {
-                    case ' ':
-                        e.preventDefault();
-                        togglePlay();
-                        break;
-                    case 'ArrowLeft':
-                        e.preventDefault();
-                        seek(-5);
-                        break;
-                    case 'ArrowRight':
-                        e.preventDefault();
-                        seek(5);
-                        break;
-                    case ',':
-                        stepFrame(-1);
-                        break;
-                    case '.':
-                        stepFrame(1);
-                        break;
-                    case 'f':
-                        toggleFullscreen();
-                        break;
-                    case 'Escape':
-                        if (state.isFullscreen) exitFullscreen();
-                        break;
+                    case ' ': e.preventDefault(); togglePlay(); break;
+                    case 'ArrowLeft': e.preventDefault(); seek(-5); break;
+                    case 'ArrowRight': e.preventDefault(); seek(5); break;
+                    case ',': stepFrame(-1); break;
+                    case '.': stepFrame(1); break;
+                    case 'f': toggleFullscreen(); break;
+                    case 'Escape': if (state.isFullscreen) exitFullscreen(); break;
                 }
             });
         }
 
-        // Start the app
+        // Start
         init();
     </script>
 </body>
