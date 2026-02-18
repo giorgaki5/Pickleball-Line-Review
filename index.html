@@ -30,32 +30,40 @@
             height: 100dvh;
         }
 
+        /* ========== HEADER ========== */
         .header {
             background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
-            padding: 12px 16px;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid #333;
+            flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .header h1::before {
             content: "🏓";
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .recording-indicator {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
+            gap: 5px;
+            font-size: 11px;
             color: #888;
         }
 
@@ -65,8 +73,8 @@
 
         .recording-indicator.active::before {
             content: "";
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: #ff4757;
             border-radius: 50%;
             animation: pulse 1s infinite;
@@ -77,6 +85,24 @@
             50% { opacity: 0.4; }
         }
 
+        .fullscreen-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #444;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fullscreen-btn:active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* ========== VIDEO CONTAINER ========== */
         .video-container {
             flex: 1;
             position: relative;
@@ -85,6 +111,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            min-height: 0;
         }
 
         #liveVideo {
@@ -104,56 +131,48 @@
 
         .overlay-info {
             position: absolute;
-            top: 12px;
-            left: 12px;
+            top: 8px;
+            left: 8px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            z-index: 10;
         }
 
         .info-badge {
             background: rgba(0, 0, 0, 0.75);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
             backdrop-filter: blur(4px);
         }
 
-        .info-badge.recording {
-            color: #00ff88;
-        }
-
-        .info-badge.review {
-            color: #ffa502;
-        }
-
-        .speed-indicator {
-            background: #ff6b6b;
-            color: white;
-            font-weight: 600;
-        }
+        .info-badge.recording { color: #00ff88; }
+        .info-badge.review { color: #ffa502; }
 
         .time-badge {
             position: absolute;
-            bottom: 12px;
-            right: 12px;
+            bottom: 8px;
+            right: 8px;
             background: rgba(0, 0, 0, 0.75);
-            padding: 8px 14px;
-            border-radius: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
             font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-            font-size: 16px;
+            font-size: 14px;
             backdrop-filter: blur(4px);
+            z-index: 10;
         }
 
         .buffer-badge {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 8px;
+            right: 8px;
             background: rgba(0, 0, 0, 0.75);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 11px;
             backdrop-filter: blur(4px);
+            z-index: 10;
         }
 
         .buffer-badge span {
@@ -161,6 +180,64 @@
             font-weight: 600;
         }
 
+        /* ========== VIDEO SCRUBBER (Review Mode) ========== */
+        .video-scrubber {
+            position: absolute;
+            bottom: 50px;
+            left: 12px;
+            right: 12px;
+            z-index: 20;
+            display: none;
+        }
+
+        .video-scrubber.visible {
+            display: block;
+        }
+
+        .scrubber-track {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .scrubber-input {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #ffa502 0%, #ffa502 var(--progress, 0%), #444 var(--progress, 0%), #444 100%);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .scrubber-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .scrubber-input::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        /* ========== STATUS OVERLAY ========== */
         .status-overlay {
             position: absolute;
             top: 0;
@@ -175,26 +252,22 @@
             z-index: 100;
         }
 
-        .status-overlay.hidden {
-            display: none;
-        }
+        .status-overlay.hidden { display: none; }
 
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #333;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
             border-top-color: #ffa502;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .status-text {
-            font-size: 16px;
+            font-size: 14px;
             color: #ccc;
         }
 
@@ -202,79 +275,81 @@
             background: rgba(255, 71, 87, 0.15);
             border: 1px solid #ff4757;
             border-radius: 12px;
-            padding: 20px;
-            margin: 20px;
-            max-width: 320px;
+            padding: 16px;
+            margin: 16px;
+            max-width: 300px;
             text-align: center;
         }
 
         .error-box h3 {
             color: #ff4757;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
         .error-box p {
-            font-size: 14px;
+            font-size: 13px;
             color: #aaa;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
+        /* ========== CONTROLS ========== */
         .controls {
             background: linear-gradient(180deg, #16213e 0%, #0f0f1a 100%);
-            padding: 16px;
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
+            padding: 10px 12px;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            flex-shrink: 0;
         }
 
         .mode-label {
             text-align: center;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             font-weight: 600;
         }
 
-        .mode-label.live {
-            color: #00ff88;
-        }
+        .mode-label.live { color: #00ff88; }
+        .mode-label.review { color: #ffa502; }
 
-        .mode-label.review {
-            color: #ffa502;
+        .camera-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .camera-select {
-            width: 100%;
-            padding: 12px;
+            flex: 1;
+            padding: 10px;
             border: 1px solid #333;
-            border-radius: 10px;
+            border-radius: 8px;
             background: #1a1a2e;
             color: white;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 13px;
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 12px center;
+            background-position: right 10px center;
         }
 
         .primary-btn {
             width: 100%;
-            padding: 18px;
+            padding: 14px;
             border: none;
-            border-radius: 14px;
-            font-size: 17px;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            transition: transform 0.15s, opacity 0.15s;
+            gap: 8px;
+            transition: transform 0.1s;
         }
 
         .primary-btn:active {
             transform: scale(0.97);
-            opacity: 0.9;
         }
 
         .review-btn {
@@ -287,88 +362,54 @@
             color: #000;
         }
 
-        .live-controls {
-            display: block;
-        }
-
-        .review-controls {
-            display: none;
-        }
-
-        .review-controls.active {
-            display: block;
-        }
-
-        .live-controls.hidden {
-            display: none;
-        }
+        .live-controls { display: block; }
+        .review-controls { display: none; }
+        .review-controls.active { display: block; }
+        .live-controls.hidden { display: none; }
 
         .control-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .ctrl-btn {
-            padding: 14px 8px;
+            padding: 10px 6px;
             border: none;
-            border-radius: 12px;
-            font-size: 13px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            transition: transform 0.1s;
+            gap: 2px;
         }
 
-        .ctrl-btn:active {
-            transform: scale(0.95);
-        }
-
-        .ctrl-btn .icon {
-            font-size: 22px;
-        }
-
-        .ctrl-btn.rewind {
-            background: #2d3436;
-            color: white;
-        }
-
-        .ctrl-btn.play {
-            background: #00b894;
-            color: white;
-        }
-
-        .ctrl-btn.play.paused {
-            background: #fdcb6e;
-            color: #000;
-        }
-
-        .ctrl-btn.forward {
-            background: #2d3436;
-            color: white;
-        }
+        .ctrl-btn:active { transform: scale(0.95); }
+        .ctrl-btn .icon { font-size: 18px; }
+        .ctrl-btn.rewind { background: #2d3436; color: white; }
+        .ctrl-btn.play { background: #00b894; color: white; }
+        .ctrl-btn.play.paused { background: #fdcb6e; color: #000; }
+        .ctrl-btn.forward { background: #2d3436; color: white; }
 
         .speed-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .speed-btn {
             flex: 1;
-            padding: 12px 6px;
+            padding: 10px 4px;
             border: 2px solid #333;
-            border-radius: 10px;
+            border-radius: 8px;
             background: transparent;
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s;
         }
 
         .speed-btn.active {
@@ -377,76 +418,275 @@
             color: #ffa502;
         }
 
-        .speed-btn:active {
-            transform: scale(0.95);
-        }
+        .speed-btn:active { transform: scale(0.95); }
 
         .frame-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .frame-btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 1px solid #444;
-            border-radius: 10px;
+            border-radius: 8px;
             background: #1a1a2e;
             color: #aaa;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
         }
 
-        .frame-btn:active {
-            background: #252540;
-        }
+        .frame-btn:active { background: #252540; }
 
         .progress-wrap {
-            margin-bottom: 14px;
+            margin-bottom: 10px;
         }
 
         .progress-bar {
             width: 100%;
-            height: 8px;
+            height: 6px;
             background: #333;
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
             cursor: pointer;
-            position: relative;
         }
 
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #ffa502, #ff6348);
             width: 0%;
-            border-radius: 4px;
-            transition: width 0.05s linear;
+            border-radius: 3px;
         }
 
         .progress-time {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 10px;
             color: #666;
-            margin-top: 6px;
+            margin-top: 4px;
             font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* ========== LANDSCAPE OPTIMIZATIONS ========== */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .header {
+                padding: 4px 10px;
+            }
+
+            .header h1 {
+                font-size: 14px;
+            }
+
+            .controls {
+                padding: 6px 10px;
+                padding-bottom: max(6px, env(safe-area-inset-bottom));
+            }
+
+            .mode-label {
+                display: none;
+            }
+
+            .camera-row {
+                margin-bottom: 6px;
+            }
+
+            .camera-select {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+
+            .primary-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .control-grid {
+                margin-bottom: 6px;
+                gap: 6px;
+            }
+
+            .ctrl-btn {
+                padding: 6px 4px;
+                font-size: 11px;
+            }
+
+            .ctrl-btn .icon {
+                font-size: 16px;
+            }
+
+            .speed-row {
+                margin-bottom: 6px;
+            }
+
+            .speed-btn {
+                padding: 6px 2px;
+                font-size: 11px;
+            }
+
+            .frame-row {
+                margin-bottom: 6px;
+            }
+
+            .frame-btn {
+                padding: 6px;
+                font-size: 11px;
+            }
+
+            .progress-wrap {
+                margin-bottom: 6px;
+            }
+
+            .video-scrubber {
+                bottom: 40px;
+            }
+
+            .scrubber-track {
+                height: 32px;
+                padding: 0 12px;
+            }
+
+            .scrubber-input::-webkit-slider-thumb {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        /* Even more compact for very short screens */
+        @media (orientation: landscape) and (max-height: 380px) {
+            .header {
+                display: none;
+            }
+
+            .frame-row {
+                display: none;
+            }
+
+            .progress-wrap {
+                display: none;
+            }
+        }
+
+        /* ========== FULLSCREEN MODE ========== */
+        .app-container.fullscreen-mode .header,
+        .app-container.fullscreen-mode .controls {
+            display: none !important;
+        }
+
+        .app-container.fullscreen-mode .video-container {
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        .exit-fullscreen-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #555;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 50;
+            display: none;
+        }
+
+        .app-container.fullscreen-mode .exit-fullscreen-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Fullscreen review controls overlay */
+        .fullscreen-review-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 60px 16px 16px;
+            display: none;
+            z-index: 30;
+        }
+
+        .app-container.fullscreen-mode.review-active .fullscreen-review-controls {
+            display: block;
+        }
+
+        .fs-control-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .fs-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .fs-btn:active {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .fs-btn.play-btn {
+            background: #00b894;
+            padding: 12px 30px;
+        }
+
+        .fs-btn.play-btn.paused {
+            background: #fdcb6e;
+            color: #000;
+        }
+
+        .fs-speed-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .fs-speed-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid transparent;
+            color: #888;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .fs-speed-btn.active {
+            border-color: #ffa502;
+            color: #ffa502;
+            background: rgba(255, 165, 2, 0.15);
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-container" id="appContainer">
         <header class="header">
             <h1>Line Review</h1>
-            <div class="recording-indicator" id="recordingIndicator">Ready</div>
+            <div class="header-right">
+                <div class="recording-indicator" id="recordingIndicator">Ready</div>
+                <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+            </div>
         </header>
 
         <div class="video-container">
             <video id="liveVideo" autoplay playsinline muted></video>
             <canvas id="reviewCanvas"></canvas>
 
-            <div class="overlay-info" id="overlayInfo">
+            <div class="overlay-info">
                 <div class="info-badge recording" id="modeBadge">● LIVE</div>
             </div>
 
@@ -455,6 +695,31 @@
             </div>
 
             <div class="time-badge" id="timeBadge">00:00.0</div>
+
+            <!-- Video scrubber slider -->
+            <div class="video-scrubber" id="videoScrubber">
+                <div class="scrubber-track">
+                    <input type="range" class="scrubber-input" id="scrubberInput" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Exit fullscreen button -->
+            <button class="exit-fullscreen-btn" id="exitFullscreenBtn">✕ Exit</button>
+
+            <!-- Fullscreen review controls -->
+            <div class="fullscreen-review-controls" id="fsReviewControls">
+                <div class="fs-control-row">
+                    <button class="fs-btn" id="fsRewindBtn">⏪ -15s</button>
+                    <button class="fs-btn play-btn" id="fsPlayBtn">▶️</button>
+                    <button class="fs-btn" id="fsForwardBtn">+15s ⏩</button>
+                </div>
+                <div class="fs-speed-row">
+                    <button class="fs-speed-btn" data-speed="0.1">0.1×</button>
+                    <button class="fs-speed-btn" data-speed="0.25">0.25×</button>
+                    <button class="fs-speed-btn" data-speed="0.5">0.5×</button>
+                    <button class="fs-speed-btn active" data-speed="1">1×</button>
+                </div>
+            </div>
 
             <div class="status-overlay" id="statusOverlay">
                 <div class="spinner"></div>
@@ -465,9 +730,11 @@
         <div class="controls">
             <div class="mode-label live" id="modeLabel">● RECORDING</div>
 
-            <select class="camera-select" id="cameraSelect">
-                <option value="">Loading cameras...</option>
-            </select>
+            <div class="camera-row">
+                <select class="camera-select" id="cameraSelect">
+                    <option value="">Loading cameras...</option>
+                </select>
+            </div>
 
             <div class="live-controls" id="liveControls">
                 <button class="primary-btn review-btn" id="reviewBtn">
@@ -522,14 +789,12 @@
 
     <script>
         // ============================================
-        // FRAME BUFFER APPROACH
-        // Store frames as ImageData for reliable playback
+        // CONFIG & STATE
         // ============================================
 
         const CONFIG = {
             FPS: 30,
             BUFFER_SECONDS: 90,
-            // These will be set dynamically based on actual video dimensions
             CAPTURE_WIDTH: null,
             CAPTURE_HEIGHT: null
         };
@@ -540,9 +805,10 @@
             captureCanvas: null,
             captureCtx: null,
             frameBuffer: [],
-            maxFrames: 2700, // Will be recalculated based on actual resolution
+            maxFrames: 2700,
             isCapturing: false,
             captureInterval: null,
+            isFullscreen: false,
 
             // Review state
             reviewIndex: 0,
@@ -552,6 +818,7 @@
         };
 
         const el = {
+            appContainer: document.getElementById('appContainer'),
             liveVideo: document.getElementById('liveVideo'),
             reviewCanvas: document.getElementById('reviewCanvas'),
             recordingIndicator: document.getElementById('recordingIndicator'),
@@ -575,7 +842,15 @@
             progressBar: document.getElementById('progressBar'),
             progressFill: document.getElementById('progressFill'),
             currentTime: document.getElementById('currentTime'),
-            totalTime: document.getElementById('totalTime')
+            totalTime: document.getElementById('totalTime'),
+            fullscreenBtn: document.getElementById('fullscreenBtn'),
+            exitFullscreenBtn: document.getElementById('exitFullscreenBtn'),
+            videoScrubber: document.getElementById('videoScrubber'),
+            scrubberInput: document.getElementById('scrubberInput'),
+            fsReviewControls: document.getElementById('fsReviewControls'),
+            fsRewindBtn: document.getElementById('fsRewindBtn'),
+            fsPlayBtn: document.getElementById('fsPlayBtn'),
+            fsForwardBtn: document.getElementById('fsForwardBtn')
         };
 
         // ============================================
@@ -588,9 +863,8 @@
                 return;
             }
 
-            // Setup capture canvas (offscreen) - dimensions set when camera starts
             state.captureCanvas = document.createElement('canvas');
-            state.captureCtx = null; // Will be created after we know dimensions
+            state.captureCtx = null;
 
             try {
                 showStatus('Requesting camera access...');
@@ -605,7 +879,6 @@
         }
 
         async function getCameras() {
-            // Request permission first
             await navigator.mediaDevices.getUserMedia({ video: true });
             
             const devices = await navigator.mediaDevices.enumerateDevices();
@@ -616,7 +889,6 @@
                 const opt = document.createElement('option');
                 opt.value = cam.deviceId;
                 opt.textContent = cam.label || `Camera ${i + 1}`;
-                // Prefer back camera
                 if (cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('rear')) {
                     opt.selected = true;
                 }
@@ -629,7 +901,6 @@
         }
 
         async function startCamera(deviceId) {
-            // Stop existing stream
             if (state.stream) {
                 state.stream.getTracks().forEach(t => t.stop());
                 stopCapturing();
@@ -652,7 +923,6 @@
             state.stream = await navigator.mediaDevices.getUserMedia(constraints);
             el.liveVideo.srcObject = state.stream;
 
-            // Wait for video to be ready and get actual dimensions
             await new Promise(resolve => {
                 el.liveVideo.onloadedmetadata = () => {
                     el.liveVideo.play();
@@ -660,22 +930,18 @@
                 };
             });
 
-            // Get actual video dimensions (accounting for portrait/landscape)
             const videoWidth = el.liveVideo.videoWidth;
             const videoHeight = el.liveVideo.videoHeight;
             
             console.log(`Camera resolution: ${videoWidth}x${videoHeight}`);
 
-            // Scale down if needed to save memory, but maintain aspect ratio
             const maxDimension = 1280;
             let captureWidth, captureHeight;
             
             if (videoWidth > videoHeight) {
-                // Landscape
                 captureWidth = Math.min(videoWidth, maxDimension);
                 captureHeight = Math.round(captureWidth * (videoHeight / videoWidth));
             } else {
-                // Portrait
                 captureHeight = Math.min(videoHeight, maxDimension);
                 captureWidth = Math.round(captureHeight * (videoWidth / videoHeight));
             }
@@ -683,28 +949,19 @@
             CONFIG.CAPTURE_WIDTH = captureWidth;
             CONFIG.CAPTURE_HEIGHT = captureHeight;
 
-            console.log(`Capture resolution: ${captureWidth}x${captureHeight}`);
-
-            // Setup capture canvas with correct dimensions
             state.captureCanvas.width = captureWidth;
             state.captureCanvas.height = captureHeight;
             state.captureCtx = state.captureCanvas.getContext('2d', { willReadFrequently: true });
 
-            // Setup review canvas with correct dimensions
             el.reviewCanvas.width = captureWidth;
             el.reviewCanvas.height = captureHeight;
 
-            // Update max frames based on new dimensions (adjust for memory)
-            const bytesPerFrame = captureWidth * captureHeight * 4; // RGBA
+            const bytesPerFrame = captureWidth * captureHeight * 4;
             const targetMemoryMB = 300;
             const maxFramesByMemory = Math.floor((targetMemoryMB * 1024 * 1024) / bytesPerFrame);
             state.maxFrames = Math.min(CONFIG.FPS * CONFIG.BUFFER_SECONDS, maxFramesByMemory);
-            
-            console.log(`Max frames: ${state.maxFrames} (~${(state.maxFrames / CONFIG.FPS).toFixed(0)}s buffer)`);
 
-            // Clear old buffer when switching cameras
             state.frameBuffer = [];
-
             startCapturing();
         }
 
@@ -741,7 +998,6 @@
         function captureFrame() {
             if (!state.stream || !el.liveVideo.videoWidth) return;
 
-            // Draw current video frame to capture canvas
             state.captureCtx.drawImage(
                 el.liveVideo,
                 0, 0,
@@ -749,22 +1005,18 @@
                 CONFIG.CAPTURE_HEIGHT
             );
 
-            // Get image data
             const imageData = state.captureCtx.getImageData(
                 0, 0,
                 CONFIG.CAPTURE_WIDTH,
                 CONFIG.CAPTURE_HEIGHT
             );
 
-            // Add to buffer
             state.frameBuffer.push(imageData);
 
-            // Trim old frames
             while (state.frameBuffer.length > state.maxFrames) {
                 state.frameBuffer.shift();
             }
 
-            // Update UI
             updateBufferDisplay();
         }
 
@@ -784,24 +1036,21 @@
                 return;
             }
 
-            // Pause live capture
             stopCapturing();
-
-            // Switch to review mode
             state.mode = 'review';
             
-            // Start 15 seconds from end (or at start if less footage)
             const framesBack = Math.min(CONFIG.FPS * 15, state.frameBuffer.length - 1);
             state.reviewIndex = state.frameBuffer.length - framesBack;
             state.isPlaying = false;
             state.playbackSpeed = 1;
 
-            // Update UI
             el.liveVideo.style.display = 'none';
             el.reviewCanvas.style.display = 'block';
             el.liveControls.classList.add('hidden');
             el.reviewControls.classList.add('active');
             el.bufferBadge.style.display = 'none';
+            el.videoScrubber.classList.add('visible');
+            el.appContainer.classList.add('review-active');
 
             el.modeBadge.textContent = '⏸ REVIEW';
             el.modeBadge.classList.remove('recording');
@@ -811,11 +1060,13 @@
             el.modeLabel.classList.remove('live');
             el.modeLabel.classList.add('review');
 
-            // Update total time display
             const totalSec = state.frameBuffer.length / CONFIG.FPS;
             el.totalTime.textContent = formatTime(totalSec);
 
-            // Show current frame
+            // Setup scrubber
+            el.scrubberInput.max = state.frameBuffer.length - 1;
+            el.scrubberInput.value = state.reviewIndex;
+
             renderCurrentFrame();
             updatePlayButton();
             updateProgressBar();
@@ -823,18 +1074,16 @@
         }
 
         function exitReviewMode() {
-            // Stop playback
             stopPlayback();
-
-            // Switch back to live
             state.mode = 'live';
 
-            // Update UI
             el.reviewCanvas.style.display = 'none';
             el.liveVideo.style.display = 'block';
             el.reviewControls.classList.remove('active');
             el.liveControls.classList.remove('hidden');
             el.bufferBadge.style.display = 'block';
+            el.videoScrubber.classList.remove('visible');
+            el.appContainer.classList.remove('review-active');
 
             el.modeBadge.textContent = '● LIVE';
             el.modeBadge.classList.add('recording');
@@ -844,7 +1093,6 @@
             el.modeLabel.classList.add('live');
             el.modeLabel.classList.remove('review');
 
-            // Resume capture
             startCapturing();
         }
 
@@ -860,12 +1108,12 @@
             const ctx = el.reviewCanvas.getContext('2d');
             ctx.putImageData(frame, 0, 0);
 
-            // Update time display
             const currentSec = state.reviewIndex / CONFIG.FPS;
             el.currentTime.textContent = formatTime(currentSec);
             el.timeBadge.textContent = formatTime(currentSec);
 
             updateProgressBar();
+            updateScrubber();
         }
 
         // ============================================
@@ -882,7 +1130,7 @@
 
         function startPlayback() {
             if (state.reviewIndex >= state.frameBuffer.length - 1) {
-                state.reviewIndex = 0; // Restart from beginning
+                state.reviewIndex = 0;
             }
 
             state.isPlaying = true;
@@ -915,10 +1163,7 @@
             stopPlayback();
             const frameDelta = Math.round(seconds * CONFIG.FPS);
             state.reviewIndex += frameDelta;
-            
-            // Clamp to valid range
             state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
-            
             renderCurrentFrame();
         }
 
@@ -949,6 +1194,50 @@
             renderCurrentFrame();
         }
 
+        function seekToScrubberPosition() {
+            stopPlayback();
+            state.reviewIndex = parseInt(el.scrubberInput.value);
+            renderCurrentFrame();
+        }
+
+        // ============================================
+        // FULLSCREEN
+        // ============================================
+
+        function toggleFullscreen() {
+            if (state.isFullscreen) {
+                exitFullscreen();
+            } else {
+                enterFullscreen();
+            }
+        }
+
+        function enterFullscreen() {
+            state.isFullscreen = true;
+            el.appContainer.classList.add('fullscreen-mode');
+            el.fullscreenBtn.textContent = '⛶';
+
+            // Try native fullscreen
+            const elem = el.appContainer;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            state.isFullscreen = false;
+            el.appContainer.classList.remove('fullscreen-mode');
+            el.fullscreenBtn.textContent = '⛶';
+
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+
         // ============================================
         // UI UPDATES
         // ============================================
@@ -957,9 +1246,13 @@
             if (state.isPlaying) {
                 el.playBtn.innerHTML = '<span class="icon">⏸</span><span>Pause</span>';
                 el.playBtn.classList.remove('paused');
+                el.fsPlayBtn.textContent = '⏸';
+                el.fsPlayBtn.classList.remove('paused');
             } else {
                 el.playBtn.innerHTML = '<span class="icon">▶️</span><span>Play</span>';
                 el.playBtn.classList.add('paused');
+                el.fsPlayBtn.textContent = '▶️';
+                el.fsPlayBtn.classList.add('paused');
             }
         }
 
@@ -968,8 +1261,14 @@
             el.progressFill.style.width = `${percent}%`;
         }
 
+        function updateScrubber() {
+            el.scrubberInput.value = state.reviewIndex;
+            const percent = (state.reviewIndex / (state.frameBuffer.length - 1)) * 100;
+            el.scrubberInput.style.setProperty('--progress', `${percent}%`);
+        }
+
         function updateSpeedButtons() {
-            document.querySelectorAll('.speed-btn').forEach(btn => {
+            document.querySelectorAll('.speed-btn, .fs-speed-btn').forEach(btn => {
                 const speed = parseFloat(btn.dataset.speed);
                 btn.classList.toggle('active', speed === state.playbackSpeed);
             });
@@ -1036,6 +1335,37 @@
 
             el.progressBar.addEventListener('click', seekToPosition);
 
+            // Fullscreen
+            el.fullscreenBtn.addEventListener('click', toggleFullscreen);
+            el.exitFullscreenBtn.addEventListener('click', exitFullscreen);
+
+            // Scrubber
+            el.scrubberInput.addEventListener('input', seekToScrubberPosition);
+
+            // Fullscreen review controls
+            el.fsPlayBtn.addEventListener('click', togglePlay);
+            el.fsRewindBtn.addEventListener('click', () => seek(-15));
+            el.fsForwardBtn.addEventListener('click', () => seek(15));
+
+            document.querySelectorAll('.fs-speed-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setSpeed(parseFloat(btn.dataset.speed));
+                });
+            });
+
+            // Handle native fullscreen exit
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && state.isFullscreen) {
+                    exitFullscreen();
+                }
+            });
+
+            document.addEventListener('webkitfullscreenchange', () => {
+                if (!document.webkitFullscreenElement && state.isFullscreen) {
+                    exitFullscreen();
+                }
+            });
+
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 if (state.mode !== 'review') return;
@@ -1058,6 +1388,12 @@
                         break;
                     case '.':
                         stepFrame(1);
+                        break;
+                    case 'f':
+                        toggleFullscreen();
+                        break;
+                    case 'Escape':
+                        if (state.isFullscreen) exitFullscreen();
                         break;
                 }
             });
