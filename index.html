@@ -807,7 +807,8 @@
             frameBuffer: [],
             maxFrames: 2700,
             isCapturing: false,
-            captureInterval: null,
+            captureAnimationId: null,
+            lastCaptureTime: 0,
             isFullscreen: false,
 
             // Review state
@@ -879,7 +880,10 @@
         }
 
         async function getCameras() {
-            await navigator.mediaDevices.getUserMedia({ video: true });
+            // Request permission first to get camera labels
+            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // Stop this temporary stream immediately
+            tempStream.getTracks().forEach(t => t.stop());
             
             const devices = await navigator.mediaDevices.enumerateDevices();
             const cameras = devices.filter(d => d.kind === 'videoinput');
@@ -925,9 +929,28 @@
 
             await new Promise(resolve => {
                 el.liveVideo.onloadedmetadata = () => {
-                    el.liveVideo.play();
-                    resolve();
+                    el.liveVideo.play().then(resolve).catch(resolve);
                 };
+            });
+
+            // Keep video playing - handle interruptions
+            el.liveVideo.onpause = () => {
+                if (state.mode === 'live' && state.stream) {
+                    el.liveVideo.play().catch(() => {});
+                }
+            };
+
+            el.liveVideo.onended = () => {
+                if (state.mode === 'live' && state.stream) {
+                    el.liveVideo.play().catch(() => {});
+                }
+            };
+
+            // Handle visibility changes (phone screen off/on)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && state.mode === 'live' && state.stream) {
+                    el.liveVideo.play().catch(() => {});
+                }
             });
 
             const videoWidth = el.liveVideo.videoWidth;
@@ -974,50 +997,72 @@
 
             state.isCapturing = true;
             state.frameBuffer = [];
-
-            const intervalMs = 1000 / CONFIG.FPS;
-
-            state.captureInterval = setInterval(() => {
-                captureFrame();
-            }, intervalMs);
+            state.lastCaptureTime = 0;
 
             el.recordingIndicator.classList.add('active');
             el.recordingIndicator.textContent = 'Recording';
+
+            // Use requestAnimationFrame for smoother capture
+            function captureLoop(timestamp) {
+                if (!state.isCapturing) return;
+
+                const intervalMs = 1000 / CONFIG.FPS;
+                
+                if (timestamp - state.lastCaptureTime >= intervalMs) {
+                    captureFrame();
+                    state.lastCaptureTime = timestamp;
+                }
+
+                state.captureAnimationId = requestAnimationFrame(captureLoop);
+            }
+
+            state.captureAnimationId = requestAnimationFrame(captureLoop);
         }
 
         function stopCapturing() {
-            if (state.captureInterval) {
-                clearInterval(state.captureInterval);
-                state.captureInterval = null;
-            }
             state.isCapturing = false;
+            if (state.captureAnimationId) {
+                cancelAnimationFrame(state.captureAnimationId);
+                state.captureAnimationId = null;
+            }
             el.recordingIndicator.classList.remove('active');
             el.recordingIndicator.textContent = 'Paused';
         }
 
         function captureFrame() {
-            if (!state.stream || !el.liveVideo.videoWidth) return;
+            try {
+                // Check if video is still playing
+                if (!state.stream || !el.liveVideo.videoWidth || el.liveVideo.paused || el.liveVideo.ended) {
+                    // Try to restart video if it stopped
+                    if (el.liveVideo.paused && state.stream) {
+                        el.liveVideo.play().catch(() => {});
+                    }
+                    return;
+                }
 
-            state.captureCtx.drawImage(
-                el.liveVideo,
-                0, 0,
-                CONFIG.CAPTURE_WIDTH,
-                CONFIG.CAPTURE_HEIGHT
-            );
+                state.captureCtx.drawImage(
+                    el.liveVideo,
+                    0, 0,
+                    CONFIG.CAPTURE_WIDTH,
+                    CONFIG.CAPTURE_HEIGHT
+                );
 
-            const imageData = state.captureCtx.getImageData(
-                0, 0,
-                CONFIG.CAPTURE_WIDTH,
-                CONFIG.CAPTURE_HEIGHT
-            );
+                const imageData = state.captureCtx.getImageData(
+                    0, 0,
+                    CONFIG.CAPTURE_WIDTH,
+                    CONFIG.CAPTURE_HEIGHT
+                );
 
-            state.frameBuffer.push(imageData);
+                state.frameBuffer.push(imageData);
 
-            while (state.frameBuffer.length > state.maxFrames) {
-                state.frameBuffer.shift();
+                while (state.frameBuffer.length > state.maxFrames) {
+                    state.frameBuffer.shift();
+                }
+
+                updateBufferDisplay();
+            } catch (err) {
+                console.error('Capture error:', err);
             }
-
-            updateBufferDisplay();
         }
 
         function updateBufferDisplay() {
