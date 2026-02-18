@@ -793,7 +793,7 @@
         // ============================================
 
         const CONFIG = {
-            FPS: 30,
+            FPS: 15,  // Reduced from 30 for better mobile performance
             BUFFER_SECONDS: 90,
             CAPTURE_WIDTH: null,
             CAPTURE_HEIGHT: null
@@ -880,27 +880,41 @@
         }
 
         async function getCameras() {
-            // Request permission first to get camera labels
-            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            // Stop this temporary stream immediately
-            tempStream.getTracks().forEach(t => t.stop());
-            
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const cameras = devices.filter(d => d.kind === 'videoinput');
-
-            el.cameraSelect.innerHTML = '';
-            cameras.forEach((cam, i) => {
-                const opt = document.createElement('option');
-                opt.value = cam.deviceId;
-                opt.textContent = cam.label || `Camera ${i + 1}`;
-                if (cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('rear')) {
-                    opt.selected = true;
+            try {
+                // Try to enumerate without permission first
+                let devices = await navigator.mediaDevices.enumerateDevices();
+                let cameras = devices.filter(d => d.kind === 'videoinput');
+                
+                // If we don't have labels, we need permission
+                if (cameras.length === 0 || !cameras[0].label) {
+                    // This will be our main stream - don't stop it
+                    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    // Store it so startCamera can reuse or properly replace it
+                    state.stream = tempStream;
+                    el.liveVideo.srcObject = tempStream;
+                    
+                    // Re-enumerate to get labels
+                    devices = await navigator.mediaDevices.enumerateDevices();
+                    cameras = devices.filter(d => d.kind === 'videoinput');
                 }
-                el.cameraSelect.appendChild(opt);
-            });
 
-            if (cameras.length === 0) {
-                throw new Error('No cameras found');
+                el.cameraSelect.innerHTML = '';
+                cameras.forEach((cam, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = cam.deviceId;
+                    opt.textContent = cam.label || `Camera ${i + 1}`;
+                    if (cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('rear')) {
+                        opt.selected = true;
+                    }
+                    el.cameraSelect.appendChild(opt);
+                });
+
+                if (cameras.length === 0) {
+                    throw new Error('No cameras found');
+                }
+            } catch (err) {
+                console.error('getCameras error:', err);
+                throw err;
             }
         }
 
@@ -936,38 +950,38 @@
             // Keep video playing - handle interruptions
             el.liveVideo.onpause = () => {
                 if (state.mode === 'live' && state.stream) {
+                    console.log('Video paused, restarting...');
                     el.liveVideo.play().catch(() => {});
                 }
             };
 
-            el.liveVideo.onended = () => {
-                if (state.mode === 'live' && state.stream) {
-                    el.liveVideo.play().catch(() => {});
-                }
+            el.liveVideo.onerror = (e) => {
+                console.error('Video error:', e);
             };
-
-            // Handle visibility changes (phone screen off/on)
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && state.mode === 'live' && state.stream) {
-                    el.liveVideo.play().catch(() => {});
-                }
-            });
 
             const videoWidth = el.liveVideo.videoWidth;
             const videoHeight = el.liveVideo.videoHeight;
             
             console.log(`Camera resolution: ${videoWidth}x${videoHeight}`);
 
-            const maxDimension = 1280;
+            // Use lower resolution for capture to reduce memory pressure
+            // 720p max instead of 1280p
+            const maxDimension = 720;
             let captureWidth, captureHeight;
             
             if (videoWidth > videoHeight) {
+                // Landscape
                 captureWidth = Math.min(videoWidth, maxDimension);
                 captureHeight = Math.round(captureWidth * (videoHeight / videoWidth));
             } else {
+                // Portrait
                 captureHeight = Math.min(videoHeight, maxDimension);
                 captureWidth = Math.round(captureHeight * (videoWidth / videoHeight));
             }
+
+            // Ensure even dimensions (some codecs require this)
+            captureWidth = Math.floor(captureWidth / 2) * 2;
+            captureHeight = Math.floor(captureHeight / 2) * 2;
 
             CONFIG.CAPTURE_WIDTH = captureWidth;
             CONFIG.CAPTURE_HEIGHT = captureHeight;
