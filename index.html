@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Pickleball Line Review</title>
@@ -30,7 +30,6 @@
             height: 100dvh;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
             padding: 12px 16px;
@@ -66,8 +65,8 @@
 
         .recording-indicator.active::before {
             content: "";
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background: #ff4757;
             border-radius: 50%;
             animation: pulse 1s infinite;
@@ -75,10 +74,9 @@
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.4; }
         }
 
-        /* Video Container */
         .video-container {
             flex: 1;
             position: relative;
@@ -89,222 +87,291 @@
             overflow: hidden;
         }
 
-        #liveVideo, #reviewVideo {
+        #liveVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        #reviewVideo {
+        #reviewCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             display: none;
         }
 
-        .video-overlay {
+        .overlay-info {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-badge {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            backdrop-filter: blur(4px);
+        }
+
+        .info-badge.recording {
+            color: #00ff88;
+        }
+
+        .info-badge.review {
+            color: #ffa502;
+        }
+
+        .speed-indicator {
+            background: #ff6b6b;
+            color: white;
+            font-weight: 600;
+        }
+
+        .time-badge {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .buffer-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .buffer-badge span {
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .status-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            pointer-events: none;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
         }
 
-        /* Line guide overlay */
-        .line-guide {
-            position: absolute;
-            bottom: 20%;
-            left: 10%;
-            right: 10%;
-            height: 4px;
-            background: rgba(0, 255, 136, 0.3);
-            border: 1px dashed rgba(0, 255, 136, 0.6);
+        .status-overlay.hidden {
             display: none;
         }
 
-        .line-guide.visible {
-            display: block;
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #333;
+            border-top-color: #ffa502;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
         }
 
-        /* Playback info overlay */
-        .playback-info {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            display: none;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .playback-info.visible {
-            display: block;
-        }
-
-        .speed-badge {
-            display: inline-block;
-            background: #ffa502;
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-
-        .speed-badge.slow {
-            background: #ff6b6b;
-            color: white;
-        }
-
-        /* Time display */
-        .time-display {
-            position: absolute;
-            bottom: 16px;
-            right: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-family: 'SF Mono', Monaco, monospace;
+        .status-text {
             font-size: 16px;
+            color: #ccc;
         }
 
-        /* Controls */
+        .error-box {
+            background: rgba(255, 71, 87, 0.15);
+            border: 1px solid #ff4757;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .error-box h3 {
+            color: #ff4757;
+            margin-bottom: 12px;
+        }
+
+        .error-box p {
+            font-size: 14px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
         .controls {
             background: linear-gradient(180deg, #16213e 0%, #0f0f1a 100%);
             padding: 16px;
             padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
 
-        /* Mode indicator */
-        .mode-indicator {
+        .mode-label {
             text-align: center;
-            margin-bottom: 12px;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
-        .mode-indicator.recording {
+        .mode-label.live {
             color: #00ff88;
         }
 
-        .mode-indicator.reviewing {
+        .mode-label.review {
             color: #ffa502;
         }
 
-        /* Main action button */
-        .main-action {
+        .camera-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: #1a1a2e;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 12px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .primary-btn {
             width: 100%;
             padding: 18px;
             border: none;
-            border-radius: 16px;
-            font-size: 18px;
+            border-radius: 14px;
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-            margin-bottom: 12px;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            transition: transform 0.15s, opacity 0.15s;
         }
 
-        .main-action.review-btn {
-            background: linear-gradient(135deg, #ffa502 0%, #ff6b35 100%);
+        .primary-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .review-btn {
+            background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%);
             color: white;
         }
 
-        .main-action.back-btn {
+        .back-btn {
             background: linear-gradient(135deg, #00ff88 0%, #00b894 100%);
             color: #000;
         }
 
-        .main-action:active {
-            transform: scale(0.98);
+        .live-controls {
+            display: block;
         }
 
-        /* Playback controls */
-        .playback-controls {
+        .review-controls {
             display: none;
-            gap: 8px;
         }
 
-        .playback-controls.visible {
-            display: flex;
+        .review-controls.active {
+            display: block;
         }
 
-        .control-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
+        .live-controls.hidden {
+            display: none;
         }
 
-        .control-btn {
-            flex: 1;
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .ctrl-btn {
             padding: 14px 8px;
             border: none;
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
+            transition: transform 0.1s;
         }
 
-        .control-btn:active {
+        .ctrl-btn:active {
             transform: scale(0.95);
         }
 
-        .control-btn .icon {
-            font-size: 20px;
+        .ctrl-btn .icon {
+            font-size: 22px;
         }
 
-        .rewind-btn {
+        .ctrl-btn.rewind {
             background: #2d3436;
             color: white;
         }
 
-        .play-pause-btn {
+        .ctrl-btn.play {
             background: #00b894;
             color: white;
         }
 
-        .play-pause-btn.paused {
+        .ctrl-btn.play.paused {
             background: #fdcb6e;
             color: #000;
         }
 
-        .forward-btn {
+        .ctrl-btn.forward {
             background: #2d3436;
             color: white;
         }
 
-        /* Speed controls */
-        .speed-controls {
+        .speed-row {
             display: flex;
-            gap: 6px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .speed-btn {
             flex: 1;
-            padding: 12px 8px;
+            padding: 12px 6px;
             border: 2px solid #333;
             border-radius: 10px;
             background: transparent;
-            color: #888;
-            font-size: 13px;
+            color: #666;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
         .speed-btn.active {
             border-color: #ffa502;
-            background: rgba(255, 165, 2, 0.1);
+            background: rgba(255, 165, 2, 0.15);
             color: #ffa502;
         }
 
@@ -312,162 +379,57 @@
             transform: scale(0.95);
         }
 
-        /* Frame step controls */
-        .frame-controls {
+        .frame-row {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-bottom: 12px;
         }
 
         .frame-btn {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #444;
-            border-radius: 8px;
+            border-radius: 10px;
             background: #1a1a2e;
             color: #aaa;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
         }
 
         .frame-btn:active {
-            background: #2a2a3e;
+            background: #252540;
         }
 
-        /* Progress bar */
-        .progress-container {
-            margin-top: 12px;
-            padding: 8px 0;
+        .progress-wrap {
+            margin-bottom: 14px;
         }
 
         .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 8px;
             background: #333;
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
             cursor: pointer;
+            position: relative;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #ffa502, #ff6b35);
+            background: linear-gradient(90deg, #ffa502, #ff6348);
             width: 0%;
-            transition: width 0.1s linear;
+            border-radius: 4px;
+            transition: width 0.05s linear;
         }
 
-        /* Settings toggle */
-        .settings-row {
+        .progress-time {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 8px 0;
-            border-top: 1px solid #333;
-            margin-top: 8px;
-        }
-
-        .settings-label {
-            font-size: 13px;
-            color: #888;
-        }
-
-        .toggle {
-            width: 44px;
-            height: 24px;
-            background: #333;
-            border-radius: 12px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .toggle.active {
-            background: #00b894;
-        }
-
-        .toggle::after {
-            content: "";
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.2s;
-        }
-
-        .toggle.active::after {
-            transform: translateX(20px);
-        }
-
-        /* Camera select */
-        .camera-select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background: #1a1a2e;
-            color: white;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
-        /* Status messages */
-        .status-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px 30px;
-            border-radius: 12px;
-            text-align: center;
-            z-index: 100;
-        }
-
-        .status-message.hidden {
-            display: none;
-        }
-
-        .status-message .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #333;
-            border-top-color: #ffa502;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Error state */
-        .error-message {
-            background: rgba(255, 71, 87, 0.9);
-            padding: 16px;
-            border-radius: 8px;
-            margin: 16px;
-            text-align: center;
-        }
-
-        /* Buffer indicator */
-        .buffer-indicator {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 6px 10px;
-            border-radius: 6px;
             font-size: 11px;
-            color: #888;
-        }
-
-        .buffer-indicator span {
-            color: #00ff88;
-            font-weight: 600;
+            color: #666;
+            margin-top: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
         }
     </style>
 </head>
@@ -475,190 +437,212 @@
     <div class="app-container">
         <header class="header">
             <h1>Line Review</h1>
-            <div class="recording-indicator" id="recordingIndicator">
-                Ready
-            </div>
+            <div class="recording-indicator" id="recordingIndicator">Ready</div>
         </header>
 
         <div class="video-container">
             <video id="liveVideo" autoplay playsinline muted></video>
-            <video id="reviewVideo" playsinline></video>
-            
-            <div class="video-overlay">
-                <div class="line-guide" id="lineGuide"></div>
+            <canvas id="reviewCanvas"></canvas>
+
+            <div class="overlay-info" id="overlayInfo">
+                <div class="info-badge recording" id="modeBadge">● LIVE</div>
             </div>
 
-            <div class="playback-info" id="playbackInfo">
-                <span id="playbackStatus">Paused</span>
-                <span class="speed-badge" id="speedBadge">1x</span>
+            <div class="buffer-badge" id="bufferBadge">
+                Buffer: <span id="bufferCount">0</span>s
             </div>
 
-            <div class="time-display" id="timeDisplay">00:00</div>
-            
-            <div class="buffer-indicator" id="bufferIndicator">
-                Buffer: <span id="bufferTime">0s</span>
-            </div>
+            <div class="time-badge" id="timeBadge">00:00.0</div>
 
-            <div class="status-message hidden" id="statusMessage">
+            <div class="status-overlay" id="statusOverlay">
                 <div class="spinner"></div>
-                <div>Initializing camera...</div>
+                <div class="status-text" id="statusText">Initializing camera...</div>
             </div>
         </div>
 
         <div class="controls">
-            <div class="mode-indicator recording" id="modeIndicator">● Recording</div>
+            <div class="mode-label live" id="modeLabel">● RECORDING</div>
 
-            <!-- Camera selection -->
             <select class="camera-select" id="cameraSelect">
-                <option value="">Select Camera...</option>
+                <option value="">Loading cameras...</option>
             </select>
 
-            <!-- Live mode controls -->
-            <div id="liveControls">
-                <button class="main-action review-btn" id="reviewBtn">
-                    <span>⏪</span> Review Last Ball
+            <div class="live-controls" id="liveControls">
+                <button class="primary-btn review-btn" id="reviewBtn">
+                    ⏪ Review Last Ball
                 </button>
             </div>
 
-            <!-- Review mode controls -->
-            <div class="playback-controls" id="reviewControls">
-                <div style="width: 100%;">
-                    <div class="control-row">
-                        <button class="control-btn rewind-btn" id="rewind15Btn">
-                            <span class="icon">⏪</span>
-                            <span>-15s</span>
-                        </button>
-                        <button class="control-btn play-pause-btn" id="playPauseBtn">
-                            <span class="icon">⏸️</span>
-                            <span>Pause</span>
-                        </button>
-                        <button class="control-btn forward-btn" id="forward15Btn">
-                            <span class="icon">⏩</span>
-                            <span>+15s</span>
-                        </button>
-                    </div>
-
-                    <div class="speed-controls">
-                        <button class="speed-btn" data-speed="0.1">0.1x</button>
-                        <button class="speed-btn" data-speed="0.25">0.25x</button>
-                        <button class="speed-btn" data-speed="0.5">0.5x</button>
-                        <button class="speed-btn active" data-speed="1">1x</button>
-                    </div>
-
-                    <div class="frame-controls">
-                        <button class="frame-btn" id="framePrevBtn">◀ Frame</button>
-                        <button class="frame-btn" id="frameNextBtn">Frame ▶</button>
-                    </div>
-
-                    <div class="progress-container">
-                        <div class="progress-bar" id="progressBar">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                    </div>
-
-                    <button class="main-action back-btn" id="backToLiveBtn">
-                        <span>📹</span> Back to Live
+            <div class="review-controls" id="reviewControls">
+                <div class="control-grid">
+                    <button class="ctrl-btn rewind" id="rewindBtn">
+                        <span class="icon">⏪</span>
+                        <span>−15s</span>
                     </button>
+                    <button class="ctrl-btn play" id="playBtn">
+                        <span class="icon">▶️</span>
+                        <span>Play</span>
+                    </button>
+                    <button class="ctrl-btn forward" id="forwardBtn">
+                        <span class="icon">⏩</span>
+                        <span>+15s</span>
+                    </button>
+                </div>
 
-                    <div class="settings-row">
-                        <span class="settings-label">Show line guide</span>
-                        <div class="toggle" id="lineGuideToggle"></div>
+                <div class="speed-row">
+                    <button class="speed-btn" data-speed="0.1">0.1×</button>
+                    <button class="speed-btn" data-speed="0.25">0.25×</button>
+                    <button class="speed-btn" data-speed="0.5">0.5×</button>
+                    <button class="speed-btn active" data-speed="1">1×</button>
+                </div>
+
+                <div class="frame-row">
+                    <button class="frame-btn" id="framePrev">◀ Prev Frame</button>
+                    <button class="frame-btn" id="frameNext">Next Frame ▶</button>
+                </div>
+
+                <div class="progress-wrap">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-time">
+                        <span id="currentTime">00:00.0</span>
+                        <span id="totalTime">00:00.0</span>
                     </div>
                 </div>
+
+                <button class="primary-btn back-btn" id="backBtn">
+                    📹 Back to Live
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // App State
-        const state = {
-            mode: 'live', // 'live' or 'review'
-            isRecording: false,
-            isPaused: false,
-            playbackSpeed: 1,
-            mediaRecorder: null,
-            recordedChunks: [],
-            recordedBlob: null,
-            stream: null,
-            bufferDuration: 120, // Keep 2 minutes of buffer
-            showLineGuide: false
+        // ============================================
+        // FRAME BUFFER APPROACH
+        // Store frames as ImageData for reliable playback
+        // ============================================
+
+        const CONFIG = {
+            FPS: 30,
+            BUFFER_SECONDS: 90,
+            CAPTURE_WIDTH: 1280,
+            CAPTURE_HEIGHT: 720
         };
 
-        // DOM Elements
-        const elements = {
+        const state = {
+            mode: 'live',
+            stream: null,
+            captureCanvas: null,
+            captureCtx: null,
+            frameBuffer: [],
+            maxFrames: CONFIG.FPS * CONFIG.BUFFER_SECONDS,
+            isCapturing: false,
+            captureInterval: null,
+
+            // Review state
+            reviewIndex: 0,
+            isPlaying: false,
+            playbackSpeed: 1,
+            playbackInterval: null
+        };
+
+        const el = {
             liveVideo: document.getElementById('liveVideo'),
-            reviewVideo: document.getElementById('reviewVideo'),
+            reviewCanvas: document.getElementById('reviewCanvas'),
             recordingIndicator: document.getElementById('recordingIndicator'),
-            modeIndicator: document.getElementById('modeIndicator'),
-            reviewBtn: document.getElementById('reviewBtn'),
+            modeBadge: document.getElementById('modeBadge'),
+            modeLabel: document.getElementById('modeLabel'),
+            bufferBadge: document.getElementById('bufferBadge'),
+            bufferCount: document.getElementById('bufferCount'),
+            timeBadge: document.getElementById('timeBadge'),
+            statusOverlay: document.getElementById('statusOverlay'),
+            statusText: document.getElementById('statusText'),
+            cameraSelect: document.getElementById('cameraSelect'),
             liveControls: document.getElementById('liveControls'),
             reviewControls: document.getElementById('reviewControls'),
-            playPauseBtn: document.getElementById('playPauseBtn'),
-            rewind15Btn: document.getElementById('rewind15Btn'),
-            forward15Btn: document.getElementById('forward15Btn'),
-            backToLiveBtn: document.getElementById('backToLiveBtn'),
+            reviewBtn: document.getElementById('reviewBtn'),
+            backBtn: document.getElementById('backBtn'),
+            rewindBtn: document.getElementById('rewindBtn'),
+            playBtn: document.getElementById('playBtn'),
+            forwardBtn: document.getElementById('forwardBtn'),
+            framePrev: document.getElementById('framePrev'),
+            frameNext: document.getElementById('frameNext'),
             progressBar: document.getElementById('progressBar'),
             progressFill: document.getElementById('progressFill'),
-            timeDisplay: document.getElementById('timeDisplay'),
-            playbackInfo: document.getElementById('playbackInfo'),
-            playbackStatus: document.getElementById('playbackStatus'),
-            speedBadge: document.getElementById('speedBadge'),
-            statusMessage: document.getElementById('statusMessage'),
-            cameraSelect: document.getElementById('cameraSelect'),
-            bufferIndicator: document.getElementById('bufferIndicator'),
-            bufferTime: document.getElementById('bufferTime'),
-            lineGuide: document.getElementById('lineGuide'),
-            lineGuideToggle: document.getElementById('lineGuideToggle'),
-            framePrevBtn: document.getElementById('framePrevBtn'),
-            frameNextBtn: document.getElementById('frameNextBtn')
+            currentTime: document.getElementById('currentTime'),
+            totalTime: document.getElementById('totalTime')
         };
 
-        // Initialize app
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
         async function init() {
-            showStatus('Initializing camera...');
-            
+            if (!window.isSecureContext) {
+                showError('Requires HTTPS', 'Camera access needs a secure connection. Please access via HTTPS.');
+                return;
+            }
+
+            // Setup capture canvas (offscreen)
+            state.captureCanvas = document.createElement('canvas');
+            state.captureCanvas.width = CONFIG.CAPTURE_WIDTH;
+            state.captureCanvas.height = CONFIG.CAPTURE_HEIGHT;
+            state.captureCtx = state.captureCanvas.getContext('2d', { willReadFrequently: true });
+
+            // Setup review canvas
+            el.reviewCanvas.width = CONFIG.CAPTURE_WIDTH;
+            el.reviewCanvas.height = CONFIG.CAPTURE_HEIGHT;
+
             try {
-                await enumerateCameras();
+                showStatus('Requesting camera access...');
+                await getCameras();
                 await startCamera();
                 hideStatus();
-            } catch (error) {
-                console.error('Init error:', error);
-                showError('Camera access denied. Please allow camera access and reload.');
+                setupListeners();
+            } catch (err) {
+                console.error('Init error:', err);
+                showError('Camera Error', 'Could not access camera. Please allow camera permission and reload.');
             }
-
-            setupEventListeners();
         }
 
-        // Enumerate available cameras
-        async function enumerateCameras() {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        async function getCameras() {
+            // Request permission first
+            await navigator.mediaDevices.getUserMedia({ video: true });
             
-            elements.cameraSelect.innerHTML = '<option value="">Select Camera...</option>';
-            videoDevices.forEach((device, index) => {
-                const option = document.createElement('option');
-                option.value = device.deviceId;
-                option.textContent = device.label || `Camera ${index + 1}`;
-                elements.cameraSelect.appendChild(option);
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const cameras = devices.filter(d => d.kind === 'videoinput');
+
+            el.cameraSelect.innerHTML = '';
+            cameras.forEach((cam, i) => {
+                const opt = document.createElement('option');
+                opt.value = cam.deviceId;
+                opt.textContent = cam.label || `Camera ${i + 1}`;
+                // Prefer back camera
+                if (cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('rear')) {
+                    opt.selected = true;
+                }
+                el.cameraSelect.appendChild(opt);
             });
 
-            // Auto-select if only one camera
-            if (videoDevices.length === 1) {
-                elements.cameraSelect.value = videoDevices[0].deviceId;
+            if (cameras.length === 0) {
+                throw new Error('No cameras found');
             }
         }
 
-        // Start camera stream
-        async function startCamera(deviceId = null) {
+        async function startCamera(deviceId) {
+            // Stop existing stream
             if (state.stream) {
-                state.stream.getTracks().forEach(track => track.stop());
+                state.stream.getTracks().forEach(t => t.stop());
+                stopCapturing();
             }
 
             const constraints = {
                 video: {
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
-                    frameRate: { ideal: 60, min: 30 },
+                    width: { ideal: CONFIG.CAPTURE_WIDTH },
+                    height: { ideal: CONFIG.CAPTURE_HEIGHT },
+                    frameRate: { ideal: CONFIG.FPS },
                     facingMode: deviceId ? undefined : 'environment'
                 },
                 audio: false
@@ -669,322 +653,370 @@
             }
 
             state.stream = await navigator.mediaDevices.getUserMedia(constraints);
-            elements.liveVideo.srcObject = state.stream;
-            
-            startRecording();
-        }
+            el.liveVideo.srcObject = state.stream;
 
-        // Start continuous recording
-        function startRecording() {
-            if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-                state.mediaRecorder.stop();
-            }
-
-            state.recordedChunks = [];
-            
-            const options = { 
-                mimeType: 'video/webm;codecs=vp9',
-                videoBitsPerSecond: 8000000 // 8 Mbps for quality
-            };
-            
-            // Fallback for Safari
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                options.mimeType = 'video/webm';
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options.mimeType = 'video/mp4';
-                }
-            }
-
-            state.mediaRecorder = new MediaRecorder(state.stream, options);
-            
-            state.mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    state.recordedChunks.push(event.data);
-                    
-                    // Update buffer indicator
-                    updateBufferIndicator();
-                    
-                    // Trim old chunks to maintain buffer duration
-                    trimBuffer();
-                }
-            };
-
-            state.mediaRecorder.start(1000); // Capture every second
-            state.isRecording = true;
-            updateRecordingIndicator();
-        }
-
-        // Trim buffer to keep only recent footage
-        function trimBuffer() {
-            // Estimate ~1MB per second at our bitrate
-            const maxChunks = state.bufferDuration;
-            while (state.recordedChunks.length > maxChunks) {
-                state.recordedChunks.shift();
-            }
-        }
-
-        // Update buffer indicator
-        function updateBufferIndicator() {
-            const seconds = state.recordedChunks.length;
-            elements.bufferTime.textContent = `${seconds}s`;
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Camera selection
-            elements.cameraSelect.addEventListener('change', async (e) => {
-                if (e.target.value) {
-                    showStatus('Switching camera...');
-                    await startCamera(e.target.value);
-                    hideStatus();
-                }
+            // Wait for video to be ready
+            await new Promise(resolve => {
+                el.liveVideo.onloadedmetadata = resolve;
             });
 
-            // Review button
-            elements.reviewBtn.addEventListener('click', enterReviewMode);
-
-            // Back to live button
-            elements.backToLiveBtn.addEventListener('click', exitReviewMode);
-
-            // Play/Pause
-            elements.playPauseBtn.addEventListener('click', togglePlayPause);
-
-            // Rewind/Forward
-            elements.rewind15Btn.addEventListener('click', () => seek(-15));
-            elements.forward15Btn.addEventListener('click', () => seek(15));
-
-            // Frame step buttons
-            elements.framePrevBtn.addEventListener('click', () => frameStep(-1));
-            elements.frameNextBtn.addEventListener('click', () => frameStep(1));
-
-            // Speed controls
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    setPlaybackSpeed(parseFloat(e.target.dataset.speed));
-                });
-            });
-
-            // Progress bar
-            elements.progressBar.addEventListener('click', (e) => {
-                const rect = elements.progressBar.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                elements.reviewVideo.currentTime = percent * elements.reviewVideo.duration;
-            });
-
-            // Video time update
-            elements.reviewVideo.addEventListener('timeupdate', updateProgress);
-
-            // Line guide toggle
-            elements.lineGuideToggle.addEventListener('click', toggleLineGuide);
+            startCapturing();
         }
 
-        // Enter review mode
-        async function enterReviewMode() {
-            if (state.recordedChunks.length === 0) {
-                alert('No footage recorded yet. Wait a few seconds and try again.');
+        // ============================================
+        // FRAME CAPTURE
+        // ============================================
+
+        function startCapturing() {
+            if (state.isCapturing) return;
+
+            state.isCapturing = true;
+            state.frameBuffer = [];
+
+            const intervalMs = 1000 / CONFIG.FPS;
+
+            state.captureInterval = setInterval(() => {
+                captureFrame();
+            }, intervalMs);
+
+            el.recordingIndicator.classList.add('active');
+            el.recordingIndicator.textContent = 'Recording';
+        }
+
+        function stopCapturing() {
+            if (state.captureInterval) {
+                clearInterval(state.captureInterval);
+                state.captureInterval = null;
+            }
+            state.isCapturing = false;
+            el.recordingIndicator.classList.remove('active');
+            el.recordingIndicator.textContent = 'Paused';
+        }
+
+        function captureFrame() {
+            if (!state.stream || !el.liveVideo.videoWidth) return;
+
+            // Draw current video frame to capture canvas
+            state.captureCtx.drawImage(
+                el.liveVideo,
+                0, 0,
+                CONFIG.CAPTURE_WIDTH,
+                CONFIG.CAPTURE_HEIGHT
+            );
+
+            // Get image data
+            const imageData = state.captureCtx.getImageData(
+                0, 0,
+                CONFIG.CAPTURE_WIDTH,
+                CONFIG.CAPTURE_HEIGHT
+            );
+
+            // Add to buffer
+            state.frameBuffer.push(imageData);
+
+            // Trim old frames
+            while (state.frameBuffer.length > state.maxFrames) {
+                state.frameBuffer.shift();
+            }
+
+            // Update UI
+            updateBufferDisplay();
+        }
+
+        function updateBufferDisplay() {
+            const frames = state.frameBuffer.length;
+            const seconds = (frames / CONFIG.FPS).toFixed(1);
+            el.bufferCount.textContent = seconds;
+        }
+
+        // ============================================
+        // REVIEW MODE
+        // ============================================
+
+        function enterReviewMode() {
+            if (state.frameBuffer.length < CONFIG.FPS) {
+                alert('Not enough footage yet. Wait a few seconds and try again.');
                 return;
             }
 
-            showStatus('Preparing review...');
+            // Pause live capture
+            stopCapturing();
 
-            // Create blob from recorded chunks
-            state.recordedBlob = new Blob(state.recordedChunks, { 
-                type: state.mediaRecorder.mimeType 
-            });
+            // Switch to review mode
+            state.mode = 'review';
             
-            const url = URL.createObjectURL(state.recordedBlob);
-            elements.reviewVideo.src = url;
-            
-            elements.reviewVideo.onloadedmetadata = () => {
-                // Start at 15 seconds from end, or at start if less than 15s
-                const startTime = Math.max(0, elements.reviewVideo.duration - 15);
-                elements.reviewVideo.currentTime = startTime;
-                elements.reviewVideo.pause();
-                
-                state.mode = 'review';
-                state.isPaused = true;
-                
-                // Update UI
-                elements.liveVideo.style.display = 'none';
-                elements.reviewVideo.style.display = 'block';
-                elements.liveControls.style.display = 'none';
-                elements.reviewControls.classList.add('visible');
-                elements.playbackInfo.classList.add('visible');
-                elements.bufferIndicator.style.display = 'none';
-                
-                updateModeIndicator();
-                updatePlayPauseButton();
-                hideStatus();
-            };
+            // Start 15 seconds from end (or at start if less footage)
+            const framesBack = Math.min(CONFIG.FPS * 15, state.frameBuffer.length - 1);
+            state.reviewIndex = state.frameBuffer.length - framesBack;
+            state.isPlaying = false;
+            state.playbackSpeed = 1;
+
+            // Update UI
+            el.liveVideo.style.display = 'none';
+            el.reviewCanvas.style.display = 'block';
+            el.liveControls.classList.add('hidden');
+            el.reviewControls.classList.add('active');
+            el.bufferBadge.style.display = 'none';
+
+            el.modeBadge.textContent = '⏸ REVIEW';
+            el.modeBadge.classList.remove('recording');
+            el.modeBadge.classList.add('review');
+
+            el.modeLabel.textContent = '⏸ REVIEW MODE';
+            el.modeLabel.classList.remove('live');
+            el.modeLabel.classList.add('review');
+
+            // Update total time display
+            const totalSec = state.frameBuffer.length / CONFIG.FPS;
+            el.totalTime.textContent = formatTime(totalSec);
+
+            // Show current frame
+            renderCurrentFrame();
+            updatePlayButton();
+            updateProgressBar();
+            updateSpeedButtons();
         }
 
-        // Exit review mode
         function exitReviewMode() {
+            // Stop playback
+            stopPlayback();
+
+            // Switch back to live
             state.mode = 'live';
-            
-            // Clean up
-            elements.reviewVideo.pause();
-            URL.revokeObjectURL(elements.reviewVideo.src);
-            
+
             // Update UI
-            elements.liveVideo.style.display = 'block';
-            elements.reviewVideo.style.display = 'none';
-            elements.liveControls.style.display = 'block';
-            elements.reviewControls.classList.remove('visible');
-            elements.playbackInfo.classList.remove('visible');
-            elements.bufferIndicator.style.display = 'block';
-            
-            // Reset playback speed
-            setPlaybackSpeed(1);
-            
-            updateModeIndicator();
+            el.reviewCanvas.style.display = 'none';
+            el.liveVideo.style.display = 'block';
+            el.reviewControls.classList.remove('active');
+            el.liveControls.classList.remove('hidden');
+            el.bufferBadge.style.display = 'block';
+
+            el.modeBadge.textContent = '● LIVE';
+            el.modeBadge.classList.add('recording');
+            el.modeBadge.classList.remove('review');
+
+            el.modeLabel.textContent = '● RECORDING';
+            el.modeLabel.classList.add('live');
+            el.modeLabel.classList.remove('review');
+
+            // Resume capture
+            startCapturing();
         }
 
-        // Toggle play/pause
-        function togglePlayPause() {
-            if (state.isPaused) {
-                elements.reviewVideo.play();
-                state.isPaused = false;
-            } else {
-                elements.reviewVideo.pause();
-                state.isPaused = true;
+        function renderCurrentFrame() {
+            if (state.reviewIndex < 0) state.reviewIndex = 0;
+            if (state.reviewIndex >= state.frameBuffer.length) {
+                state.reviewIndex = state.frameBuffer.length - 1;
             }
-            updatePlayPauseButton();
-        }
 
-        // Seek forward/backward
-        function seek(seconds) {
-            const newTime = elements.reviewVideo.currentTime + seconds;
-            elements.reviewVideo.currentTime = Math.max(0, Math.min(newTime, elements.reviewVideo.duration));
-        }
+            const frame = state.frameBuffer[state.reviewIndex];
+            if (!frame) return;
 
-        // Frame step (approximate - 1/30th of a second per frame)
-        function frameStep(frames) {
-            const frameTime = 1 / 30; // Assuming 30fps
-            elements.reviewVideo.currentTime += frames * frameTime;
-            if (!state.isPaused) {
-                elements.reviewVideo.pause();
-                state.isPaused = true;
-                updatePlayPauseButton();
-            }
-        }
+            const ctx = el.reviewCanvas.getContext('2d');
+            ctx.putImageData(frame, 0, 0);
 
-        // Set playback speed
-        function setPlaybackSpeed(speed) {
-            state.playbackSpeed = speed;
-            elements.reviewVideo.playbackRate = speed;
-            
-            // Update UI
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.classList.toggle('active', parseFloat(btn.dataset.speed) === speed);
-            });
-            
-            elements.speedBadge.textContent = `${speed}x`;
-            elements.speedBadge.classList.toggle('slow', speed < 1);
-        }
-
-        // Update progress bar
-        function updateProgress() {
-            const percent = (elements.reviewVideo.currentTime / elements.reviewVideo.duration) * 100;
-            elements.progressFill.style.width = `${percent}%`;
-            
             // Update time display
-            const current = formatTime(elements.reviewVideo.currentTime);
-            const total = formatTime(elements.reviewVideo.duration);
-            elements.timeDisplay.textContent = `${current} / ${total}`;
+            const currentSec = state.reviewIndex / CONFIG.FPS;
+            el.currentTime.textContent = formatTime(currentSec);
+            el.timeBadge.textContent = formatTime(currentSec);
+
+            updateProgressBar();
         }
 
-        // Format time as MM:SS
+        // ============================================
+        // PLAYBACK CONTROLS
+        // ============================================
+
+        function togglePlay() {
+            if (state.isPlaying) {
+                stopPlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            if (state.reviewIndex >= state.frameBuffer.length - 1) {
+                state.reviewIndex = 0; // Restart from beginning
+            }
+
+            state.isPlaying = true;
+            updatePlayButton();
+
+            const intervalMs = (1000 / CONFIG.FPS) / state.playbackSpeed;
+
+            state.playbackInterval = setInterval(() => {
+                state.reviewIndex++;
+
+                if (state.reviewIndex >= state.frameBuffer.length) {
+                    stopPlayback();
+                    state.reviewIndex = state.frameBuffer.length - 1;
+                } else {
+                    renderCurrentFrame();
+                }
+            }, intervalMs);
+        }
+
+        function stopPlayback() {
+            state.isPlaying = false;
+            if (state.playbackInterval) {
+                clearInterval(state.playbackInterval);
+                state.playbackInterval = null;
+            }
+            updatePlayButton();
+        }
+
+        function seek(seconds) {
+            stopPlayback();
+            const frameDelta = Math.round(seconds * CONFIG.FPS);
+            state.reviewIndex += frameDelta;
+            
+            // Clamp to valid range
+            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
+            
+            renderCurrentFrame();
+        }
+
+        function stepFrame(direction) {
+            stopPlayback();
+            state.reviewIndex += direction;
+            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
+            renderCurrentFrame();
+        }
+
+        function setSpeed(speed) {
+            const wasPlaying = state.isPlaying;
+            stopPlayback();
+            state.playbackSpeed = speed;
+            updateSpeedButtons();
+            if (wasPlaying) {
+                startPlayback();
+            }
+        }
+
+        function seekToPosition(e) {
+            const rect = el.progressBar.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            const targetIndex = Math.floor(percent * state.frameBuffer.length);
+            
+            stopPlayback();
+            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, targetIndex));
+            renderCurrentFrame();
+        }
+
+        // ============================================
+        // UI UPDATES
+        // ============================================
+
+        function updatePlayButton() {
+            if (state.isPlaying) {
+                el.playBtn.innerHTML = '<span class="icon">⏸</span><span>Pause</span>';
+                el.playBtn.classList.remove('paused');
+            } else {
+                el.playBtn.innerHTML = '<span class="icon">▶️</span><span>Play</span>';
+                el.playBtn.classList.add('paused');
+            }
+        }
+
+        function updateProgressBar() {
+            const percent = (state.reviewIndex / (state.frameBuffer.length - 1)) * 100;
+            el.progressFill.style.width = `${percent}%`;
+        }
+
+        function updateSpeedButtons() {
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                const speed = parseFloat(btn.dataset.speed);
+                btn.classList.toggle('active', speed === state.playbackSpeed);
+            });
+        }
+
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            const tenths = Math.floor((seconds % 1) * 10);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${tenths}`;
         }
 
-        // Update recording indicator
-        function updateRecordingIndicator() {
-            if (state.isRecording) {
-                elements.recordingIndicator.classList.add('active');
-                elements.recordingIndicator.textContent = 'Recording';
-            } else {
-                elements.recordingIndicator.classList.remove('active');
-                elements.recordingIndicator.textContent = 'Ready';
-            }
+        function showStatus(text) {
+            el.statusText.textContent = text;
+            el.statusOverlay.classList.remove('hidden');
         }
 
-        // Update mode indicator
-        function updateModeIndicator() {
-            if (state.mode === 'live') {
-                elements.modeIndicator.textContent = '● Recording';
-                elements.modeIndicator.classList.add('recording');
-                elements.modeIndicator.classList.remove('reviewing');
-            } else {
-                elements.modeIndicator.textContent = '⏸ Review Mode';
-                elements.modeIndicator.classList.remove('recording');
-                elements.modeIndicator.classList.add('reviewing');
-            }
-        }
-
-        // Update play/pause button
-        function updatePlayPauseButton() {
-            if (state.isPaused) {
-                elements.playPauseBtn.innerHTML = '<span class="icon">▶️</span><span>Play</span>';
-                elements.playPauseBtn.classList.add('paused');
-                elements.playbackStatus.textContent = 'Paused';
-            } else {
-                elements.playPauseBtn.innerHTML = '<span class="icon">⏸️</span><span>Pause</span>';
-                elements.playPauseBtn.classList.remove('paused');
-                elements.playbackStatus.textContent = 'Playing';
-            }
-        }
-
-        // Toggle line guide
-        function toggleLineGuide() {
-            state.showLineGuide = !state.showLineGuide;
-            elements.lineGuideToggle.classList.toggle('active', state.showLineGuide);
-            elements.lineGuide.classList.toggle('visible', state.showLineGuide);
-        }
-
-        // Show status message
-        function showStatus(message) {
-            elements.statusMessage.querySelector('div:last-child').textContent = message;
-            elements.statusMessage.classList.remove('hidden');
-        }
-
-        // Hide status message
         function hideStatus() {
-            elements.statusMessage.classList.add('hidden');
+            el.statusOverlay.classList.add('hidden');
         }
 
-        // Show error
-        function showError(message) {
-            elements.statusMessage.innerHTML = `<div class="error-message">${message}</div>`;
-            elements.statusMessage.classList.remove('hidden');
+        function showError(title, message) {
+            el.statusOverlay.innerHTML = `
+                <div class="error-box">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            el.statusOverlay.classList.remove('hidden');
         }
 
-        // Keyboard shortcuts (for testing on desktop)
-        document.addEventListener('keydown', (e) => {
-            if (state.mode !== 'review') return;
-            
-            switch(e.key) {
-                case ' ':
-                    e.preventDefault();
-                    togglePlayPause();
-                    break;
-                case 'ArrowLeft':
-                    seek(-5);
-                    break;
-                case 'ArrowRight':
-                    seek(5);
-                    break;
-                case ',':
-                    frameStep(-1);
-                    break;
-                case '.':
-                    frameStep(1);
-                    break;
-            }
-        });
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        function setupListeners() {
+            el.cameraSelect.addEventListener('change', async (e) => {
+                if (e.target.value) {
+                    showStatus('Switching camera...');
+                    try {
+                        await startCamera(e.target.value);
+                        hideStatus();
+                    } catch (err) {
+                        showError('Camera Error', 'Could not switch camera.');
+                    }
+                }
+            });
+
+            el.reviewBtn.addEventListener('click', enterReviewMode);
+            el.backBtn.addEventListener('click', exitReviewMode);
+
+            el.playBtn.addEventListener('click', togglePlay);
+            el.rewindBtn.addEventListener('click', () => seek(-15));
+            el.forwardBtn.addEventListener('click', () => seek(15));
+
+            el.framePrev.addEventListener('click', () => stepFrame(-1));
+            el.frameNext.addEventListener('click', () => stepFrame(1));
+
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setSpeed(parseFloat(btn.dataset.speed));
+                });
+            });
+
+            el.progressBar.addEventListener('click', seekToPosition);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (state.mode !== 'review') return;
+
+                switch (e.key) {
+                    case ' ':
+                        e.preventDefault();
+                        togglePlay();
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        seek(-5);
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        seek(5);
+                        break;
+                    case ',':
+                        stepFrame(-1);
+                        break;
+                    case '.':
+                        stepFrame(1);
+                        break;
+                }
+            });
+        }
 
         // Start the app
         init();
