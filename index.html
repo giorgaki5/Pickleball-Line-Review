@@ -246,49 +246,60 @@
             font-weight: 600;
         }
 
-        /* ========== VIDEO SCRUBBER ========== */
-        .video-scrubber {
-            position: absolute;
-            bottom: 50px;
-            left: 12px;
-            right: 12px;
-            z-index: 20;
-            display: none;
+        /* ========== SCRUBBER SLIDER ========== */
+        .scrubber-wrap {
+            margin-bottom: 10px;
         }
 
-        .video-scrubber.visible {
-            display: block;
-        }
-
-        .scrubber-track {
-            width: 100%;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 20px;
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            backdrop-filter: blur(8px);
-        }
-
-        .scrubber-input {
+        .scrubber-slider {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 8px;
-            background: linear-gradient(to right, #ffa502 0%, #ffa502 var(--progress, 0%), #444 var(--progress, 0%), #444 100%);
-            border-radius: 4px;
+            height: 32px;
+            background: transparent;
             outline: none;
             cursor: pointer;
+            padding: 10px 0;
         }
 
-        .scrubber-input::-webkit-slider-thumb {
+        .scrubber-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #ffa502 0%, #ffa502 var(--progress, 0%), #333 var(--progress, 0%), #333 100%);
+            border-radius: 4px;
+        }
+
+        .scrubber-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             background: #fff;
             border-radius: 50%;
             cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .scrubber-slider::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+        }
+
+        .scrubber-slider::-moz-range-progress {
+            background: #ffa502;
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .scrubber-slider::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
@@ -497,23 +508,6 @@
             cursor: pointer;
         }
 
-        .progress-wrap { margin-bottom: 10px; }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #333;
-            border-radius: 3px;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ffa502, #ff6348);
-            width: 0%;
-        }
-
         .progress-time {
             display: flex;
             justify-content: space-between;
@@ -666,12 +660,6 @@
 
             <div class="time-badge" id="timeBadge">00:00.0</div>
 
-            <div class="video-scrubber" id="videoScrubber">
-                <div class="scrubber-track">
-                    <input type="range" class="scrubber-input" id="scrubberInput" min="0" max="100" value="0">
-                </div>
-            </div>
-
             <button class="exit-fullscreen-btn" id="exitFullscreenBtn">✕ Exit</button>
 
             <div class="fullscreen-review-controls" id="fsReviewControls">
@@ -744,10 +732,8 @@
                     <button class="frame-btn" id="frameNext">Next Frame ▶</button>
                 </div>
 
-                <div class="progress-wrap">
-                    <div class="progress-bar" id="progressBar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
+                <div class="scrubber-wrap">
+                    <input type="range" class="scrubber-slider" id="scrubberInput" min="0" max="100" value="0">
                     <div class="progress-time">
                         <span id="currentTime">00:00.0</span>
                         <span id="totalTime">00:00.0</span>
@@ -824,13 +810,10 @@
             forwardBtn: document.getElementById('forwardBtn'),
             framePrev: document.getElementById('framePrev'),
             frameNext: document.getElementById('frameNext'),
-            progressBar: document.getElementById('progressBar'),
-            progressFill: document.getElementById('progressFill'),
             currentTime: document.getElementById('currentTime'),
             totalTime: document.getElementById('totalTime'),
             fullscreenBtn: document.getElementById('fullscreenBtn'),
             exitFullscreenBtn: document.getElementById('exitFullscreenBtn'),
-            videoScrubber: document.getElementById('videoScrubber'),
             scrubberInput: document.getElementById('scrubberInput'),
             fsReviewControls: document.getElementById('fsReviewControls'),
             fsRewindBtn: document.getElementById('fsRewindBtn'),
@@ -1329,7 +1312,6 @@
             el.liveControls.classList.add('hidden');
             el.reviewControls.classList.add('active');
             el.bufferBadge.style.display = 'none';
-            el.videoScrubber.classList.add('visible');
             el.appContainer.classList.add('review-active');
 
             el.modeBadge.textContent = '⏸ REVIEW';
@@ -1346,7 +1328,7 @@
 
             renderCurrentFrame();
             updatePlayButton();
-            updateProgressBar();
+            updateScrubber();
             updateSpeedButtons();
         }
 
@@ -1359,7 +1341,6 @@
             el.reviewControls.classList.remove('active');
             el.liveControls.classList.remove('hidden');
             el.bufferBadge.style.display = 'block';
-            el.videoScrubber.classList.remove('visible');
             el.appContainer.classList.remove('review-active');
 
             el.modeBadge.textContent = '● LIVE';
@@ -1386,7 +1367,6 @@
             el.currentTime.textContent = formatTime(currentSec);
             el.timeBadge.textContent = formatTime(currentSec);
 
-            updateProgressBar();
             updateScrubber();
         }
 
@@ -1454,15 +1434,6 @@
             if (wasPlaying) startPlayback();
         }
 
-        function seekToPosition(e) {
-            const rect = el.progressBar.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            stopPlayback();
-            state.reviewIndex = Math.floor(percent * state.frameBuffer.length);
-            state.reviewIndex = Math.max(0, Math.min(state.frameBuffer.length - 1, state.reviewIndex));
-            renderCurrentFrame();
-        }
-
         function seekToScrubberPosition() {
             stopPlayback();
             state.reviewIndex = parseInt(el.scrubberInput.value);
@@ -1520,11 +1491,6 @@
                 el.fsPlayBtn.textContent = '▶️';
                 el.fsPlayBtn.classList.add('paused');
             }
-        }
-
-        function updateProgressBar() {
-            const percent = (state.reviewIndex / Math.max(1, state.frameBuffer.length - 1)) * 100;
-            el.progressFill.style.width = `${percent}%`;
         }
 
         function updateScrubber() {
@@ -1604,7 +1570,6 @@
                 btn.addEventListener('click', () => setSpeed(parseFloat(btn.dataset.speed)));
             });
 
-            el.progressBar.addEventListener('click', seekToPosition);
             el.scrubberInput.addEventListener('input', seekToScrubberPosition);
 
             // Fullscreen
