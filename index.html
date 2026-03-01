@@ -1478,8 +1478,8 @@
                 el.loopBtn.textContent = '🔄 Set Loop';
                 el.loopIndicator.classList.remove('visible');
             } else {
-                // Enable loop - set ±1 second around current position
-                const loopFrames = CONFIG.FPS; // 1 second worth of frames
+                // Enable loop - set ±0.5 second around current position
+                const loopFrames = Math.round(CONFIG.FPS * 0.5); // 0.5 second worth of frames
                 state.loopStartIndex = Math.max(0, state.reviewIndex - loopFrames);
                 state.loopEndIndex = Math.min(state.frameBuffer.length, state.reviewIndex + loopFrames);
                 state.loopEnabled = true;
