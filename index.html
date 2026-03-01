@@ -405,6 +405,16 @@
         .crop-controls.active { display: block; }
         .live-controls.hidden { display: none; }
 
+        /* Hide camera row in review mode */
+        .app-container.review-active .camera-row {
+            display: none;
+        }
+
+        /* Hide mode label in review mode since it's shown in overlay */
+        .app-container.review-active .mode-label {
+            display: none;
+        }
+
         /* ========== EXIT FULLSCREEN ========== */
         .exit-fullscreen-btn {
             position: absolute;
