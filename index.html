@@ -113,6 +113,28 @@
             object-fit: cover;
         }
 
+        /* Live crop indicator overlay */
+        .live-crop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: none;
+            z-index: 5;
+        }
+
+        .live-crop-overlay.visible {
+            display: block;
+        }
+
+        .live-crop-region {
+            position: absolute;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(0, 255, 136, 0.6);
+        }
+
         #reviewCanvas {
             max-width: 100%;
             max-height: 100%;
@@ -726,6 +748,11 @@
             <video id="liveVideo" autoplay playsinline muted></video>
             <canvas id="reviewCanvas"></canvas>
 
+            <!-- Live crop indicator (shown during recording when crop is enabled) -->
+            <div class="live-crop-overlay" id="liveCropOverlay">
+                <div class="live-crop-region" id="liveCropRegion"></div>
+            </div>
+
             <!-- Crop overlay -->
             <div class="crop-overlay" id="cropOverlay">
                 <div class="crop-region" id="cropRegion">
@@ -930,7 +957,9 @@
             cropRegion: document.getElementById('cropRegion'),
             cropLabel: document.getElementById('cropLabel'),
             cropToggleBtn: document.getElementById('cropToggleBtn'),
-            confirmCropBtn: document.getElementById('confirmCropBtn')
+            confirmCropBtn: document.getElementById('confirmCropBtn'),
+            liveCropOverlay: document.getElementById('liveCropOverlay'),
+            liveCropRegion: document.getElementById('liveCropRegion')
         };
 
         // ============================================
@@ -1097,6 +1126,7 @@
             state.mode = 'crop';
             stopCapturing();
             
+            el.liveCropOverlay.classList.remove('visible');
             el.cropOverlay.classList.add('visible');
             el.liveControls.classList.add('hidden');
             el.cropControls.classList.add('active');
@@ -1134,6 +1164,9 @@
             el.modeLabel.textContent = '● RECORDING';
             el.modeLabel.classList.add('live');
             el.modeLabel.classList.remove('crop', 'review');
+
+            // Show live crop indicator if crop is enabled
+            updateLiveCropOverlay();
 
             startCapturing();
         }
@@ -1300,6 +1333,9 @@
                 if (state.mode === 'crop') {
                     updateCropRegionDisplay();
                 }
+                if (state.mode === 'live' && state.cropEnabled) {
+                    updateLiveCropOverlay();
+                }
             });
         }
 
@@ -1396,6 +1432,44 @@
             el.bufferCount.textContent = seconds;
         }
 
+        function updateLiveCropOverlay() {
+            if (!state.cropEnabled || state.mode !== 'live') {
+                el.liveCropOverlay.classList.remove('visible');
+                return;
+            }
+
+            el.liveCropOverlay.classList.add('visible');
+
+            const container = el.videoContainer;
+            const containerRect = container.getBoundingClientRect();
+            const videoAspect = state.videoWidth / state.videoHeight;
+            const containerAspect = containerRect.width / containerRect.height;
+            
+            let displayWidth, displayHeight, offsetX, offsetY;
+            
+            if (videoAspect > containerAspect) {
+                displayWidth = containerRect.width;
+                displayHeight = containerRect.width / videoAspect;
+                offsetX = 0;
+                offsetY = (containerRect.height - displayHeight) / 2;
+            } else {
+                displayHeight = containerRect.height;
+                displayWidth = containerRect.height * videoAspect;
+                offsetX = (containerRect.width - displayWidth) / 2;
+                offsetY = 0;
+            }
+
+            const screenX = offsetX + state.cropRect.x * displayWidth;
+            const screenY = offsetY + state.cropRect.y * displayHeight;
+            const screenW = state.cropRect.width * displayWidth;
+            const screenH = state.cropRect.height * displayHeight;
+
+            el.liveCropRegion.style.left = `${screenX}px`;
+            el.liveCropRegion.style.top = `${screenY}px`;
+            el.liveCropRegion.style.width = `${screenW}px`;
+            el.liveCropRegion.style.height = `${screenH}px`;
+        }
+
         // ============================================
         // REVIEW MODE
         // ============================================
@@ -1419,6 +1493,7 @@
             el.liveControls.classList.add('hidden');
             el.reviewControls.classList.add('active');
             el.bufferBadge.style.display = 'none';
+            el.liveCropOverlay.classList.remove('visible');
             el.appContainer.classList.add('review-active');
 
             el.modeBadge.textContent = '⏸ REVIEW';
@@ -1454,6 +1529,9 @@
             el.liveControls.classList.remove('hidden');
             el.bufferBadge.style.display = 'block';
             el.appContainer.classList.remove('review-active');
+
+            // Show live crop indicator if crop is enabled
+            updateLiveCropOverlay();
 
             el.modeBadge.textContent = '● LIVE';
             el.modeBadge.classList.add('recording');
