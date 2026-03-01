@@ -459,6 +459,21 @@
         .review-overlay-scrubber {
             margin-bottom: 12px;
             padding: 0 4px;
+            position: relative;
+        }
+
+        .loop-indicator {
+            position: absolute;
+            top: 12px;
+            height: 6px;
+            background: rgba(255, 165, 2, 0.5);
+            border-radius: 3px;
+            pointer-events: none;
+            display: none;
+        }
+
+        .loop-indicator.visible {
+            display: block;
         }
 
         .review-scrubber {
@@ -551,6 +566,17 @@
         .review-btn-overlay.frame {
             padding: 10px 24px;
             font-size: 14px;
+        }
+
+        .review-btn-overlay.loop {
+            padding: 10px 16px;
+            font-size: 13px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .review-btn-overlay.loop.active {
+            background: rgba(255, 165, 2, 0.6);
+            color: white;
         }
 
         .review-btn-overlay.play {
@@ -652,6 +678,7 @@
             <!-- Review controls overlay (shown in both regular and fullscreen review mode) -->
             <div class="review-overlay-controls" id="reviewOverlayControls">
                 <div class="review-overlay-scrubber">
+                    <div class="loop-indicator" id="loopIndicator"></div>
                     <input type="range" class="review-scrubber" id="scrubberInput" min="0" max="100" value="0">
                     <div class="review-time-row">
                         <span id="currentTime">00:00.0</span>
@@ -665,6 +692,7 @@
                 </div>
                 <div class="review-overlay-row">
                     <button class="review-btn-overlay frame" id="framePrev">◀ Frame</button>
+                    <button class="review-btn-overlay loop" id="loopBtn">🔄 Set Loop</button>
                     <button class="review-btn-overlay frame" id="frameNext">Frame ▶</button>
                 </div>
                 <div class="review-overlay-row speed">
@@ -747,7 +775,12 @@
             reviewIndex: 0,
             isPlaying: false,
             playbackSpeed: 1,
-            playbackInterval: null
+            playbackInterval: null,
+            
+            // Loop state
+            loopEnabled: false,
+            loopStartIndex: 0,
+            loopEndIndex: 0
         };
 
         const el = {
@@ -779,6 +812,8 @@
             fullscreenBtn: document.getElementById('fullscreenBtn'),
             exitFullscreenBtn: document.getElementById('exitFullscreenBtn'),
             scrubberInput: document.getElementById('scrubberInput'),
+            loopBtn: document.getElementById('loopBtn'),
+            loopIndicator: document.getElementById('loopIndicator'),
             reviewOverlayControls: document.getElementById('reviewOverlayControls'),
             cropOverlay: document.getElementById('cropOverlay'),
             cropRegion: document.getElementById('cropRegion'),
@@ -1314,6 +1349,12 @@
             state.reviewIndex = state.frameBuffer.length - framesBack;
             state.isPlaying = false;
             state.playbackSpeed = 1;
+            
+            // Reset loop state
+            state.loopEnabled = false;
+            el.loopBtn.classList.remove('active');
+            el.loopBtn.textContent = '🔄 Set Loop';
+            el.loopIndicator.classList.remove('visible');
 
             el.liveVideo.style.display = 'none';
             el.reviewCanvas.style.display = 'block';
@@ -1395,7 +1436,12 @@
         }
 
         function startPlayback() {
-            if (state.reviewIndex >= state.frameBuffer.length - 1) {
+            if (state.loopEnabled) {
+                // If looping, start from loop start if outside loop range
+                if (state.reviewIndex < state.loopStartIndex || state.reviewIndex >= state.loopEndIndex) {
+                    state.reviewIndex = state.loopStartIndex;
+                }
+            } else if (state.reviewIndex >= state.frameBuffer.length - 1) {
                 state.reviewIndex = 0;
             }
 
@@ -1406,13 +1452,69 @@
 
             state.playbackInterval = setInterval(() => {
                 state.reviewIndex++;
-                if (state.reviewIndex >= state.frameBuffer.length) {
-                    stopPlayback();
-                    state.reviewIndex = state.frameBuffer.length - 1;
-                } else {
+                
+                if (state.loopEnabled) {
+                    // Loop back to start when reaching end of loop
+                    if (state.reviewIndex >= state.loopEndIndex) {
+                        state.reviewIndex = state.loopStartIndex;
+                    }
                     renderCurrentFrame();
+                } else {
+                    if (state.reviewIndex >= state.frameBuffer.length) {
+                        stopPlayback();
+                        state.reviewIndex = state.frameBuffer.length - 1;
+                    } else {
+                        renderCurrentFrame();
+                    }
                 }
             }, intervalMs);
+        }
+
+        function toggleLoop() {
+            if (state.loopEnabled) {
+                // Disable loop
+                state.loopEnabled = false;
+                el.loopBtn.classList.remove('active');
+                el.loopBtn.textContent = '🔄 Set Loop';
+                el.loopIndicator.classList.remove('visible');
+            } else {
+                // Enable loop - set ±1 second around current position
+                const loopFrames = CONFIG.FPS; // 1 second worth of frames
+                state.loopStartIndex = Math.max(0, state.reviewIndex - loopFrames);
+                state.loopEndIndex = Math.min(state.frameBuffer.length, state.reviewIndex + loopFrames);
+                state.loopEnabled = true;
+                
+                el.loopBtn.classList.add('active');
+                el.loopBtn.textContent = '🔄 Clear Loop';
+                
+                updateLoopIndicator();
+                
+                // If currently playing, restart to apply loop
+                if (state.isPlaying) {
+                    stopPlayback();
+                    state.reviewIndex = state.loopStartIndex;
+                    renderCurrentFrame();
+                    startPlayback();
+                }
+            }
+        }
+
+        function updateLoopIndicator() {
+            if (!state.loopEnabled) {
+                el.loopIndicator.classList.remove('visible');
+                return;
+            }
+
+            el.loopIndicator.classList.add('visible');
+
+            const totalFrames = state.frameBuffer.length - 1;
+            const startPercent = (state.loopStartIndex / totalFrames) * 100;
+            const endPercent = (state.loopEndIndex / totalFrames) * 100;
+            const widthPercent = endPercent - startPercent;
+
+            // Account for padding on the scrubber container
+            el.loopIndicator.style.left = `calc(4px + ${startPercent}% * (100% - 8px) / 100)`;
+            el.loopIndicator.style.width = `calc(${widthPercent}% * (100% - 8px) / 100)`;
         }
 
         function stopPlayback() {
@@ -1573,6 +1675,7 @@
 
             el.framePrev.addEventListener('click', () => stepFrame(-1));
             el.frameNext.addEventListener('click', () => stepFrame(1));
+            el.loopBtn.addEventListener('click', toggleLoop);
 
             document.querySelectorAll('.review-speed-btn').forEach(btn => {
                 btn.addEventListener('click', () => setSpeed(parseFloat(btn.dataset.speed)));
