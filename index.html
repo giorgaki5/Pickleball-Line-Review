@@ -548,8 +548,8 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8));
-            padding: 60px 16px 16px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+            padding: 40px 16px 16px;
             display: none;
             z-index: 30;
         }
@@ -558,25 +558,114 @@
             display: block;
         }
 
+        .fs-scrubber-wrap {
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .fs-scrubber {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 36px;
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 0;
+        }
+
+        .fs-scrubber::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(to right, rgba(255,165,2,0.8) 0%, rgba(255,165,2,0.8) var(--progress, 0%), rgba(255,255,255,0.2) var(--progress, 0%), rgba(255,255,255,0.2) 100%);
+            border-radius: 3px;
+        }
+
+        .fs-scrubber::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -9px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .fs-scrubber::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+
+        .fs-scrubber::-moz-range-progress {
+            background: rgba(255,165,2,0.8);
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        .fs-scrubber::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .fs-time-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-top: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
         .fs-control-row {
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+        }
+
+        .fs-frame-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
         }
 
         .fs-btn {
             background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
             border: none;
-            color: white;
+            color: rgba(255,255,255,0.9);
             padding: 12px 20px;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
         }
 
-        .fs-btn.play-btn { background: #00b894; padding: 12px 30px; }
-        .fs-btn.play-btn.paused { background: #fdcb6e; color: #000; }
+        .fs-btn:active {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .fs-btn.frame {
+            padding: 10px 24px;
+            font-size: 14px;
+        }
+
+        .fs-btn.play-btn { 
+            background: rgba(0, 184, 148, 0.7); 
+            padding: 12px 30px; 
+        }
+        
+        .fs-btn.play-btn.paused { 
+            background: rgba(253, 203, 110, 0.7); 
+            color: rgba(0,0,0,0.8); 
+        }
 
         .fs-speed-row {
             display: flex;
@@ -586,8 +675,9 @@
 
         .fs-speed-btn {
             background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
             border: 2px solid transparent;
-            color: #888;
+            color: rgba(255,255,255,0.5);
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 14px;
@@ -596,8 +686,9 @@
         }
 
         .fs-speed-btn.active {
-            border-color: #ffa502;
-            color: #ffa502;
+            border-color: rgba(255,165,2,0.8);
+            color: rgba(255,165,2,0.9);
+            background: rgba(255,165,2,0.15);
         }
 
         /* ========== LANDSCAPE ========== */
@@ -663,10 +754,21 @@
             <button class="exit-fullscreen-btn" id="exitFullscreenBtn">✕ Exit</button>
 
             <div class="fullscreen-review-controls" id="fsReviewControls">
+                <div class="fs-scrubber-wrap">
+                    <input type="range" class="fs-scrubber" id="fsScrubberInput" min="0" max="100" value="0">
+                    <div class="fs-time-row">
+                        <span id="fsCurrentTime">00:00.0</span>
+                        <span id="fsTotalTime">00:00.0</span>
+                    </div>
+                </div>
                 <div class="fs-control-row">
                     <button class="fs-btn" id="fsRewindBtn">⏪ -15s</button>
                     <button class="fs-btn play-btn" id="fsPlayBtn">▶️</button>
                     <button class="fs-btn" id="fsForwardBtn">+15s ⏩</button>
+                </div>
+                <div class="fs-frame-row">
+                    <button class="fs-btn frame" id="fsFramePrev">◀ Frame</button>
+                    <button class="fs-btn frame" id="fsFrameNext">Frame ▶</button>
                 </div>
                 <div class="fs-speed-row">
                     <button class="fs-speed-btn" data-speed="0.1">0.1×</button>
@@ -819,6 +921,11 @@
             fsRewindBtn: document.getElementById('fsRewindBtn'),
             fsPlayBtn: document.getElementById('fsPlayBtn'),
             fsForwardBtn: document.getElementById('fsForwardBtn'),
+            fsFramePrev: document.getElementById('fsFramePrev'),
+            fsFrameNext: document.getElementById('fsFrameNext'),
+            fsScrubberInput: document.getElementById('fsScrubberInput'),
+            fsCurrentTime: document.getElementById('fsCurrentTime'),
+            fsTotalTime: document.getElementById('fsTotalTime'),
             cropOverlay: document.getElementById('cropOverlay'),
             cropRegion: document.getElementById('cropRegion'),
             cropLabel: document.getElementById('cropLabel'),
@@ -1325,6 +1432,11 @@
             el.totalTime.textContent = formatTime(state.frameBuffer.length / CONFIG.FPS);
             el.scrubberInput.max = state.frameBuffer.length - 1;
             el.scrubberInput.value = state.reviewIndex;
+            
+            // Setup fullscreen scrubber too
+            el.fsScrubberInput.max = state.frameBuffer.length - 1;
+            el.fsScrubberInput.value = state.reviewIndex;
+            el.fsTotalTime.textContent = formatTime(state.frameBuffer.length / CONFIG.FPS);
 
             renderCurrentFrame();
             updatePlayButton();
@@ -1440,6 +1552,12 @@
             renderCurrentFrame();
         }
 
+        function seekToFsScrubberPosition() {
+            stopPlayback();
+            state.reviewIndex = parseInt(el.fsScrubberInput.value);
+            renderCurrentFrame();
+        }
+
         // ============================================
         // FULLSCREEN
         // ============================================
@@ -1494,9 +1612,21 @@
         }
 
         function updateScrubber() {
-            el.scrubberInput.value = state.reviewIndex;
             const percent = (state.reviewIndex / Math.max(1, state.frameBuffer.length - 1)) * 100;
+            
+            // Update main scrubber
+            el.scrubberInput.value = state.reviewIndex;
             el.scrubberInput.style.setProperty('--progress', `${percent}%`);
+            
+            // Update fullscreen scrubber
+            el.fsScrubberInput.value = state.reviewIndex;
+            el.fsScrubberInput.style.setProperty('--progress', `${percent}%`);
+            
+            // Update fullscreen time display
+            const currentSec = state.reviewIndex / CONFIG.FPS;
+            const totalSec = state.frameBuffer.length / CONFIG.FPS;
+            el.fsCurrentTime.textContent = formatTime(currentSec);
+            el.fsTotalTime.textContent = formatTime(totalSec);
         }
 
         function updateSpeedButtons() {
@@ -1580,6 +1710,9 @@
             el.fsPlayBtn.addEventListener('click', togglePlay);
             el.fsRewindBtn.addEventListener('click', () => seek(-15));
             el.fsForwardBtn.addEventListener('click', () => seek(15));
+            el.fsFramePrev.addEventListener('click', () => stepFrame(-1));
+            el.fsFrameNext.addEventListener('click', () => stepFrame(1));
+            el.fsScrubberInput.addEventListener('input', seekToFsScrubberPosition);
 
             document.querySelectorAll('.fs-speed-btn').forEach(btn => {
                 btn.addEventListener('click', () => setSpeed(parseFloat(btn.dataset.speed)));
