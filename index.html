@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Pickleball Line Review</title>
+    <title>PickleVAR</title>
     <style>
         * {
             margin: 0;
@@ -30,6 +30,235 @@
             height: 100dvh;
         }
 
+        .app-container.hidden {
+            display: none;
+        }
+
+        /* ========== HOME SCREEN ========== */
+        .home-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .home-screen.hidden {
+            display: none;
+        }
+
+        .home-header {
+            padding: 20px;
+            text-align: center;
+            padding-top: max(20px, env(safe-area-inset-top));
+        }
+
+        .home-logo {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .home-title {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ff88 0%, #00b894 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .home-tagline {
+            font-size: 14px;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        .home-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            gap: 16px;
+        }
+
+        .home-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .home-btn:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .home-btn-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .home-btn-icon.live {
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b6b 100%);
+        }
+
+        .home-btn-icon.help {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .home-btn-icon.settings {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .home-btn-text {
+            flex: 1;
+        }
+
+        .home-btn-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .home-btn-desc {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .home-btn-arrow {
+            font-size: 20px;
+            color: #555;
+        }
+
+        .home-footer {
+            padding: 20px;
+            text-align: center;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .home-version {
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* ========== HELP MODAL ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .help-section {
+            margin-bottom: 20px;
+        }
+
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-section h3 {
+            font-size: 14px;
+            color: #00ff88;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .help-section p {
+            font-size: 14px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .help-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .help-step-num {
+            width: 24px;
+            height: 24px;
+            background: #00ff88;
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .help-step-text {
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
         /* ========== HEADER ========== */
         .header {
             background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
@@ -39,6 +268,26 @@
             justify-content: space-between;
             border-bottom: 1px solid #333;
             flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-to-home-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .header h1 {
@@ -630,9 +879,140 @@
     </style>
 </head>
 <body>
-    <div class="app-container" id="appContainer">
+    <!-- Home Screen -->
+    <div class="home-screen" id="homeScreen">
+        <div class="home-header">
+            <div class="home-logo">🏓</div>
+            <h1 class="home-title">PickleVAR</h1>
+            <p class="home-tagline">Line Call Review System</p>
+        </div>
+
+        <div class="home-content">
+            <button class="home-btn" id="startLiveBtn">
+                <div class="home-btn-icon live">📹</div>
+                <div class="home-btn-text">
+                    <div class="home-btn-title">Start Line Monitor</div>
+                    <div class="home-btn-desc">Begin recording and review line calls</div>
+                </div>
+                <div class="home-btn-arrow">›</div>
+            </button>
+
+            <button class="home-btn" id="helpBtn">
+                <div class="home-btn-icon help">❓</div>
+                <div class="home-btn-text">
+                    <div class="home-btn-title">How to Use</div>
+                    <div class="home-btn-desc">Quick guide to get started</div>
+                </div>
+                <div class="home-btn-arrow">›</div>
+            </button>
+
+            <button class="home-btn" id="settingsBtn">
+                <div class="home-btn-icon settings">⚙️</div>
+                <div class="home-btn-text">
+                    <div class="home-btn-title">Settings</div>
+                    <div class="home-btn-desc">Configure camera and preferences</div>
+                </div>
+                <div class="home-btn-arrow">›</div>
+            </button>
+        </div>
+
+        <div class="home-footer">
+            <p class="home-version">Version 1.0.0</p>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay hidden" id="helpModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">How to Use</h2>
+                <button class="modal-close" id="closeHelpBtn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h3>Setup</h3>
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <div class="help-step-text">Position your phone at floor level, pointed at the line you want to monitor.</div>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <div class="help-step-text">Use the Crop feature to focus on just the line area for longer recording buffer.</div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>During Play</h3>
+                    <p>The app continuously records. When there's a disputed call, tap "Review Last Ball" to instantly rewind.</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>Review Mode</h3>
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <div class="help-step-text">Use the scrubber or ±15s buttons to find the moment.</div>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <div class="help-step-text">Use Frame buttons to step through frame-by-frame.</div>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <div class="help-step-text">Tap "Set Loop" to replay the moment continuously.</div>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">4</div>
+                        <div class="help-step-text">Adjust playback speed (0.1× to 1×) for slow motion.</div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>Tips</h3>
+                    <p>• Use a small tripod or phone holder for stability<br>
+                       • Smaller crop region = longer buffer time<br>
+                       • 0.1× speed is best for close calls</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay hidden" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Settings</h2>
+                <button class="modal-close" id="closeSettingsBtn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h3>Camera</h3>
+                    <p>Camera selection is available on the live monitoring screen.</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>Recording</h3>
+                    <p>• Frame Rate: 24 FPS<br>
+                       • Buffer: Up to 2 minutes (with crop)<br>
+                       • Resolution: Auto-optimized</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>Coming Soon</h3>
+                    <p>• Adjustable FPS<br>
+                       • Video export<br>
+                       • Dual camera mode</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container (hidden until Start is pressed) -->
+    <div class="app-container hidden" id="appContainer">
         <header class="header">
-            <h1>Line Review</h1>
+            <div class="header-left">
+                <button class="back-to-home-btn" id="backToHomeBtn">‹</button>
+                <h1>PickleVAR</h1>
+            </div>
             <div class="header-right">
                 <div class="recording-indicator" id="recordingIndicator">Ready</div>
                 <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
@@ -784,6 +1164,18 @@
         };
 
         const el = {
+            // Home screen elements
+            homeScreen: document.getElementById('homeScreen'),
+            startLiveBtn: document.getElementById('startLiveBtn'),
+            helpBtn: document.getElementById('helpBtn'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            helpModal: document.getElementById('helpModal'),
+            closeHelpBtn: document.getElementById('closeHelpBtn'),
+            settingsModal: document.getElementById('settingsModal'),
+            closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+            backToHomeBtn: document.getElementById('backToHomeBtn'),
+
+            // App elements
             appContainer: document.getElementById('appContainer'),
             videoContainer: document.getElementById('videoContainer'),
             liveVideo: document.getElementById('liveVideo'),
@@ -1712,8 +2104,80 @@
             });
         }
 
-        // Start
-        init();
+        // ============================================
+        // HOME SCREEN NAVIGATION
+        // ============================================
+
+        function setupHomeScreen() {
+            // Start Line Monitor button
+            el.startLiveBtn.addEventListener('click', () => {
+                el.homeScreen.classList.add('hidden');
+                el.appContainer.classList.remove('hidden');
+                init();
+            });
+
+            // Help button and modal
+            el.helpBtn.addEventListener('click', () => {
+                el.helpModal.classList.remove('hidden');
+            });
+
+            el.closeHelpBtn.addEventListener('click', () => {
+                el.helpModal.classList.add('hidden');
+            });
+
+            el.helpModal.addEventListener('click', (e) => {
+                if (e.target === el.helpModal) {
+                    el.helpModal.classList.add('hidden');
+                }
+            });
+
+            // Settings button and modal
+            el.settingsBtn.addEventListener('click', () => {
+                el.settingsModal.classList.remove('hidden');
+            });
+
+            el.closeSettingsBtn.addEventListener('click', () => {
+                el.settingsModal.classList.add('hidden');
+            });
+
+            el.settingsModal.addEventListener('click', (e) => {
+                if (e.target === el.settingsModal) {
+                    el.settingsModal.classList.add('hidden');
+                }
+            });
+
+            // Back to home button
+            el.backToHomeBtn.addEventListener('click', () => {
+                // Stop camera and capturing
+                if (state.stream) {
+                    state.stream.getTracks().forEach(t => t.stop());
+                    state.stream = null;
+                }
+                stopCapturing();
+                stopPlayback();
+
+                // Reset state
+                state.mode = 'live';
+                state.frameBuffer = [];
+                state.cropEnabled = false;
+
+                // Hide app, show home
+                el.appContainer.classList.add('hidden');
+                el.homeScreen.classList.remove('hidden');
+
+                // Reset UI
+                el.reviewCanvas.style.display = 'none';
+                el.liveVideo.style.display = 'block';
+                el.reviewControls.classList.remove('active');
+                el.liveControls.classList.remove('hidden');
+                el.appContainer.classList.remove('review-active', 'fullscreen-mode');
+                el.cropToggleBtn.classList.remove('active');
+                el.liveCropOverlay.classList.remove('visible');
+            });
+        }
+
+        // Start with home screen
+        setupHomeScreen();
     </script>
 </body>
 </html>
